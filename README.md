@@ -15,3 +15,57 @@ Refactor : Chuẩn hóa OOP, chuyển tất cả thuộc tính từ Protected sa
 ## Hướng dẫn chạy
 - Cần cài đặt Java 17, IntelliJ IDEA...
 - Chạy file Main.java để bắt đầu.
+
+Sơ đồ kế thừa tổng thể:
+                                    ┌─────────────────────────┐
+                                    │                         │
+                                    │       <<abstract>>      │
+                                    │         Entity          │
+                                    │─────────────────────────│
+                                    │ - id: String            │
+                                    │─────────────────────────│
+                                    │ + getId(): String       │
+                                    └───────────┬─────────────┘
+                                                │
+                        ┌───────────────────────┴───────────────────────┐
+                        │                                               │
+                        ▼                                               ▼
+            ┌───────────────────────┐                       ┌───────────────────────┐
+            │                       │                       │                       │
+            │    <<abstract>>        │                      │    <<abstract>>       │
+            │         Item           │                      │         User          │
+            │───────────────────────│                       │───────────────────────│
+            │ - name: String        │                       │ - username: String    │
+           │ - startingPrice: double│                      │ - role: String        │
+            │ - currentHighestBid: double│                  │───────────────────────│
+            │ - highestBidderId: String│                    │ + getUsername(): String│
+            │───────────────────────│                       │ + getRole(): String   │
+            │ + getName(): String   │                       │ + displayProfile()    │
+            │ + printInfo()         │                       │   (abstract)          │
+            └───────────┬───────────┘                       └───────────┬───────────┘
+                        │                                               │
+        ┌───────────────┼───────────────┐                               │
+        │               │               │                    ┌──────────┼──────────┐
+        ▼               ▼               ▼                    ▼          ▼          ▼
+┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐
+│               │ │               │ │               │ │           │ │           │ │           │
+│  Electronics  │ │     Art       │ │   Vehicle*    │ │  Bidder   │ │  Seller*  │ │   Admin*  │
+│               │ │               │ │   (mở rộng)    │ │           │ │          │ |           |
+│───────────────│ │───────────────│ │───────────────│ │───────────│ │───────────│ │───────────│
+│ - warranty    │ │ - artistName  │ │ - engineCC    │ │ - balance │ │ - revenue │ │ - permission│
+│   Months: int │ │   : String    │ │   : int       │ │   : double│ │   : double│ │   Level    │
+│───────────────│ │───────────────│ │───────────────│ │───────────│ │───────────│ │───────────│
+│ + printInfo() │ │ + printInfo() │ │ + printInfo() │ │ + display │ │ + display │ │ + display │
+│               │ │               │ │               │ │   Profile()│ │   Profile()│ │   Profile()│
+└───────────────┘ └───────────────┘ └───────────────┘ └─────┬─────┘ └───────────┘ └───────────┘
+                                                              │
+                                                              │ implements
+                                                              ▼
+                                                    ┌───────────────────┐
+                                                    │   <<interface>>   │
+                                                    │    BidObserver    │
+                                                    │───────────────────│
+                                                    │ + update(itemId:  │
+                                                    │   String,         │
+                                                    │   newBid: double) │
+                                                    └───────────────────┘
