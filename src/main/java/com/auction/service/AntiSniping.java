@@ -1,4 +1,4 @@
-package src;
+package com.auction.service;
 
 import java.util.concurrent.*;
 

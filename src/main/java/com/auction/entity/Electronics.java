@@ -1,4 +1,4 @@
-package src;
+package com.auction.entity;
 public class Electronics extends Item {
     private int warrantyMonths;
 

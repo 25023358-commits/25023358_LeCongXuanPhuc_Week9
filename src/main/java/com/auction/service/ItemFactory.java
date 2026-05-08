@@ -1,4 +1,7 @@
-package src;
+package com.auction.service;
+
+import com.auction.entity.*;
+
 public class ItemFactory {
     public static Item createItem(String type, String id, String name, double price, int extraAttr) {
         switch (type.toLowerCase()) {    // chuyển chữ cái in hoa về chữ cái thường

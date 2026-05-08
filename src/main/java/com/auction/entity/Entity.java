@@ -1,4 +1,4 @@
-package src;
+package com.auction.entity;
 
 public abstract class Entity {
     protected String id;

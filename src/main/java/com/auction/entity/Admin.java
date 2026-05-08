@@ -1,9 +1,9 @@
-package src;
+package com.auction.entity;
 
 public class Admin extends User {
 
     public Admin(String id, String username) {
-        super(id, username, "Admin");
+        super(id, username, "ADMIN");
     }
 
     @Override

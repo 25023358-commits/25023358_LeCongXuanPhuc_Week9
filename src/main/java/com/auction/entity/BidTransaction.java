@@ -1,4 +1,4 @@
-package src;
+package com.auction.entity;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -58,4 +58,9 @@ public class BidTransaction {
     public double getBidAmount() { return bidAmount; }
     public LocalDateTime getTimestamp() { return timestamp; }
     public String getStatus() { return status; }
+
+    // Setter
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

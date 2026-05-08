@@ -1,4 +1,4 @@
-package src;
+package com.auction.entity;
 
 /**
  * Bản hợp nhất: Giữ Profile/Balance của Nhật và tính năng Nhận thông báo của Tùng
@@ -20,8 +20,8 @@ public class Bidder extends User implements BidObserver {
 
     // Tính năng Observer của Tùng: Nhận thông báo tự động khi giá thay đổi
     @Override
-    public void update(String itemId, double newBid) {
-        System.out.println("🔔 [Thông báo tới " + getUsername() + "]: Vật phẩm " + itemId + " vừa được trả giá mới: $" + newBid);
+    public void update(String itemId, double newBid, String bidderId) {
+        System.out.println("🔔 [Thông báo tới " + getUsername() + "]: Vật phẩm " + itemId + " vừa được trả giá mới: $" + newBid + " bởi " + bidderId);
 
         if (newBid > balance) {
             System.out.println("⚠️ Cảnh báo: Số dư của bạn ($" + balance + ") không còn đủ để theo thầu!");
