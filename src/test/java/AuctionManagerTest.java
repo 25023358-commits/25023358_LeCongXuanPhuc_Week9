@@ -1,5 +1,3 @@
-package com.auction;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import com.auction.service.AuctionManager;
