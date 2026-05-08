@@ -10,6 +10,6 @@ public class Art extends Item {
 
     @Override
     public void printInfo() {
-        System.out.println("[Art] " + getName() + " by " + artistName + " | Start: $" + getStartingPrice());
+        System.out.println("[Art] " + getName() + " by " + artistName + " | Start: $" + getStartingPrice() );
     }
 }

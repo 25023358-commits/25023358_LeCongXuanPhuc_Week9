@@ -1,0 +1,84 @@
+@startuml
+' Cấu hình giao diện sơ đồ cho đẹp và rõ ràng
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' --- TẦNG 1: LỚP CƠ SỞ (Mục 3.3.1) ---
+abstract class Entity {
+    - id: String
+    + getId(): String
+}
+
+' --- TẦNG 2: PHÂN CẤP ITEM VÀ USER (Mục 3.3.2) ---
+abstract class Item {
+    <<abstract>>
+    - name: String
+    - startingPrice: double
+    - currentHighestBid: double
+    - highestBidderId: String
+    + getName(): String
+    + printInfo()*
+}
+
+abstract class User {
+    <<abstract>>
+    - username: String
+    - role: String
+    + getUsername(): String
+    + getRole(): String
+    + displayProfile()*
+}
+
+' --- TẦNG 3: CÁC LỚP CON CỤ THỂ (Mục 3.3.2) ---
+class Electronics {
+    - warrantyMonths: int
+    + printInfo()
+}
+
+class Art {
+    - artistName: String
+    + printInfo()
+}
+
+class Vehicle {
+    - engineCC: int
+    + printInfo()
+}
+
+class Bidder {
+    - balance: double
+    + displayProfile()
+}
+
+class Seller {
+    - revenue: double
+    + displayProfile()
+}
+
+class Admin {
+    - permissionLevel: int
+    + displayProfile()
+}
+
+' --- TẦNG 4: INTERFACE (Mục 3.6 - Observer Pattern) ---
+interface BidObserver {
+    <<interface>>
+    + update(itemId: String, newBid: double)
+}
+
+' --- THIẾT LẬP MỐI QUAN HỆ KẾ THỪA VÀ TRIỂN KHAI ---[cite: 1]
+Entity <|-- Item
+Entity <|-- User
+
+Item <|-- Electronics
+Item <|-- Art
+Item <|-- Vehicle
+
+User <|-- Bidder
+User <|-- Seller
+User <|-- Admin
+
+' Bidder thực hiện cơ chế Observer để nhận thông báo realtime (Mục 3.2.4)[cite: 1]
+BidObserver <|.. Bidder
+
+@enduml

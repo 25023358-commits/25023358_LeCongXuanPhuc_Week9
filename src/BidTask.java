@@ -18,3 +18,6 @@ public class BidTask implements Runnable {
         AuctionManager.getInstance().placeBid(itemId, user, amount);
     }
 }
+
+
+
