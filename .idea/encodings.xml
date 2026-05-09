@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$APPLICATION_HOME_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$APPLICATION_HOME_DIR$/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Bai1/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Bai1/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Bai2/src/main/java" charset="UTF-8" />
@@ -9,6 +11,12 @@
     <file url="file://$PROJECT_DIR$/Bai3/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Bai4/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Bai4/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Bai5/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Bai5/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Bai6/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Bai6/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Bai7/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Bai7/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>
