@@ -11,7 +11,6 @@ public class Seller extends User {
     @Override
     public void displayProfile() {
         System.out.println("--- Seller Profile ---");
-        System.out.println("ID: " + getUsername()); // Giả định Entity có getId()
         System.out.println("Username: " + username);
         System.out.println("Role: " + role);
         System.out.println("Chức năng: Đăng sản phẩm, Quản lý kho hàng.");
