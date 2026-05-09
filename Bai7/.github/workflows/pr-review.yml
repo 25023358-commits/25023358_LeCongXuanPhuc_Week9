@@ -1,0 +1,37 @@
+name: PR Automated Review
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  review:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Run Unit Tests
+        run: mvn test
+
+      - name: Run Checkstyle
+        run: mvn checkstyle:checkstyle
+
+      - name: Publish Checkstyle Comments
+        uses: dbelyaev/action-checkstyle@v0.7.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          checkstyle_file: target/checkstyle-result.xml
