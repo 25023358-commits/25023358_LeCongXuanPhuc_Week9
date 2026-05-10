@@ -1,4 +1,4 @@
-package src.main.java.com.auction.entity;
+package com.auction.entity;
 
 public interface AuctionObserver {
     void update(String message);

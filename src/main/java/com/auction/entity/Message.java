@@ -1,4 +1,4 @@
-package src.main.java.com.auction.entity;
+package com.auction.entity;
 
 public class Message {
     private String type; // e.g., "LOGIN", "BID", "LIST_ITEMS"

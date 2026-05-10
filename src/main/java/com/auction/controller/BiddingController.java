@@ -1,35 +1,31 @@
-package src.main.java.com.auction.controller;
+package com.auction.controller;
 
-import src.main.java.com.auction.client.AuctionClient;
-import src.main.java.com.auction.client.ClientConnection;
-import src.main.java.com.auction.entity.Message;
-import src.main.java.com.fasterxml.jackson.databind.ObjectMapper;
+import com.auction.client.AuctionClient;
+import com.auction.client.ClientConnection;
+import com.auction.entity.Message;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class BiddingController {
-    @FXML private ListView<String> itemList;
     @FXML private TextField bidAmountField;
-    @FXML private Button placeBidButton;
     @FXML private LineChart<Number, Number> priceChart;
 
     private ClientConnection connection;
-    private ObjectMapper objectMapper = new ObjectMapper();
-    private XYChart.Series<Number, Number> series = new XYChart.Series<>();
-    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-    private long startTime = System.currentTimeMillis();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final XYChart.Series<Number, Number> series = new XYChart.Series<>();
+    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    private final long startTime = System.currentTimeMillis();
+    private static final Logger logger = Logger.getLogger(BiddingController.class.getName());
 
     @FXML
     public void initialize() {
@@ -41,7 +37,7 @@ public class BiddingController {
             // Poll for updates every 1 second
             executor.scheduleAtFixedRate(this::updateChart, 0, 1, TimeUnit.SECONDS);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.severe("Error initializing connection: " + e.getMessage());
         }
     }
 
@@ -49,12 +45,11 @@ public class BiddingController {
     private void placeBid() {
         try {
             double amount = Double.parseDouble(bidAmountField.getText());
-            Message bidMsg = new Message("BID", "itemId", amount); // Assuming itemId from selected
+            Message bidMsg = new Message("BID", "{\"itemId\":\"itemId\",\"amount\":" + amount + "}");
             connection.sendMessage(bidMsg);
-            Message response = connection.receiveMessage();
-            // Handle response
+            // Handle response if needed
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.severe("Error placing bid: " + e.getMessage());
         }
     }
 

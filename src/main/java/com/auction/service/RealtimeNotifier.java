@@ -1,9 +1,9 @@
-package src.main.java.com.auction.service;
+package com.auction.service;
 
 import java.util.*;
 import java.util.concurrent.*;
 
-import src.main.java.com.auction.entity.*;
+import com.auction.entity.*;
 
 // Thêm realtime mà không ảnh hưởng code cũ
 public class RealtimeNotifier {

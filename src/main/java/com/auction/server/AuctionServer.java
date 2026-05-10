@@ -1,15 +1,15 @@
-package src.main.java.com.auction.server;
+package com.auction.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import src.main.java.com.auction.service.AuctionManager;
-import src.main.java.com.auction.util.DBHelper;
-import src.main.java.com.auction.service.AuthService;
-import src.main.java.com.auction.dao.ItemDAO;
-import src.main.java.com.auction.dao.BidTransactionDAO;
-import src.main.java.com.auction.entity.Message;
-import src.main.java.com.auction.entity.LoginRequest;
-import src.main.java.com.auction.entity.User;
-import src.main.java.com.auction.entity.BidRequest;
+import com.auction.service.AuctionManager;
+import com.auction.util.DBHelper;
+import com.auction.service.AuthService;
+import com.auction.dao.ItemDAO;
+import com.auction.dao.BidTransactionDAO;
+import com.auction.entity.Message;
+import com.auction.entity.LoginRequest;
+import com.auction.entity.User;
+import com.auction.entity.BidRequest;
 
 import java.io.*;
 import java.net.ServerSocket;

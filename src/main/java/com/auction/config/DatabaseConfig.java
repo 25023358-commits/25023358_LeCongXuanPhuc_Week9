@@ -1,4 +1,4 @@
-package src.main.java.com.auction.config;
+package com.auction.config;
 
 /**
  * Configuration class for database settings

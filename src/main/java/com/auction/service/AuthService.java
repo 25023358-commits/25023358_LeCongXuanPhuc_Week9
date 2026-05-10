@@ -1,7 +1,8 @@
-package src.main.java.com.auction.service;
+package com.auction.service;
 
-import src.main.java.com.auction.dao.UserDAO;
-import src.main.java.com.auction.entity.User;
+import com.auction.dao.UserDAO;
+import com.auction.entity.User;
+
 
 public class AuthService {
     private UserDAO userDAO = new UserDAO();

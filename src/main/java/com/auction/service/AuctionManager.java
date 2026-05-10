@@ -1,4 +1,4 @@
-package src.main.java.com.auction.service;
+package com.auction.service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -6,8 +6,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.atomic.AtomicBoolean;
-import src.main.java.com.auction.entity.*;
-import src.main.java.com.auction.service.*;
+import com.auction.entity.*;
+import com.auction.service.*;
 
 public class AuctionManager {
     // Sử dụng ConcurrentHashMap để nhiều luồng có thể truy cập các phiên đấu giá khác nhau cùng lúc

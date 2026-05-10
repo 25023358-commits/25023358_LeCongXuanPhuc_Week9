@@ -1,11 +1,11 @@
-package src.test.java.com.auction.service;
+package com.auction.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import src.main.java.com.auction.service.AuctionManager;
-import src.main.java.com.auction.entity.Bidder;
-import src.main.java.com.auction.entity.Electronics;
-import src.main.java.com.auction.entity.Item;
+import com.auction.service.AuctionManager;
+import com.auction.entity.Bidder;
+import com.auction.entity.Electronics;
+import com.auction.entity.Item;
 
 import static org.junit.jupiter.api.Assertions.*;
 

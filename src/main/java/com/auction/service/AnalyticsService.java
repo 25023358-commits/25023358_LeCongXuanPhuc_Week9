@@ -1,4 +1,4 @@
-package src.main.java.com.auction.service;
+package com.auction.service;
 
 public class AnalyticsService {
     private BidAnalytics analytics;

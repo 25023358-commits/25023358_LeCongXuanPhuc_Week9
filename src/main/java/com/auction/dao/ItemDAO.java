@@ -1,11 +1,11 @@
-package src.main.java.com.auction.dao;
+package com.auction.dao;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import src.main.java.com.auction.entity.*;
-import src.main.java.com.auction.util.DBHelper;
+import com.auction.entity.*;
+import com.auction.util.DBHelper;
 
 public class ItemDAO {
     public void saveItem(Item item, String sellerId) {

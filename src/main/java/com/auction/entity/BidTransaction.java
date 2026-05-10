@@ -1,4 +1,4 @@
-package src.main.java.com.auction.entity;
+package com.auction.entity;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

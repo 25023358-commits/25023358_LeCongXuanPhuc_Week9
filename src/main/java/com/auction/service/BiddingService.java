@@ -1,10 +1,10 @@
-package src.main.java.com.auction.service;
+package com.auction.service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import src.main.java.com.auction.entity.*;
+import com.auction.entity.*;
 
 public class BiddingService {
     private Map<String, Item> activeAuctions;

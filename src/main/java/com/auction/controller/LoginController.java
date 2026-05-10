@@ -1,4 +1,4 @@
-package src.main.java.com.auction.controller;
+package com.auction.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;

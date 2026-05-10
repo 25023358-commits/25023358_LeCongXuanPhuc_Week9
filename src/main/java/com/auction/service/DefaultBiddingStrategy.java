@@ -1,4 +1,4 @@
-package src.main.java.com.auction.service;
+package com.auction.service;
 
 public class DefaultBiddingStrategy implements BiddingStrategy {
     @Override

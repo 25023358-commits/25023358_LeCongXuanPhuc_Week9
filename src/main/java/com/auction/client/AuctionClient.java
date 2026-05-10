@@ -1,4 +1,4 @@
-package src.main.java.com.auction.client;
+package com.auction.client;
 
 
 import javafx.application.Application;
