@@ -1,4 +1,4 @@
-package com.auction.entity;
+package src.main.java.com.auction.entity;
 public abstract class User extends Entity {
     protected String username;
     protected String role;

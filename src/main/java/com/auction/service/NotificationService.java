@@ -1,9 +1,9 @@
-package com.auction.service;
+package src.main.java.com.auction.service;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.auction.entity.*;
+import src.main.java.com.auction.entity.*;
 
 public class NotificationService {
     private List<BidObserver> observers;

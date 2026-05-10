@@ -1,4 +1,4 @@
-package com.auction.controller;
+package src.main.java.com.auction.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+import com.auction.client.AuctionClient;
 import com.auction.client.ClientConnection;
 import com.auction.entity.LoginRequest;
 import com.auction.entity.Message;
@@ -28,7 +29,7 @@ public class LoginController {
         try {
             connection = new ClientConnection();
         } catch (Exception e) {
-            messageLabel.setText("Cannot connect to server");
+            Platform.runLater(() -> messageLabel.setText("Cannot connect to server"));
         }
     }
 
@@ -44,7 +45,14 @@ public class LoginController {
             connection.sendMessage(msg);
             Message response = connection.receiveMessage();
             if ("LOGIN_SUCCESS".equals(response.getType())) {
-                Platform.runLater(() -> messageLabel.setText("Login successful"));
+                Platform.runLater(() -> {
+                    messageLabel.setText("Login successful");
+                    try {
+                        AuctionClient.showBidding();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
             } else {
                 Platform.runLater(() -> messageLabel.setText("Login failed"));
             }

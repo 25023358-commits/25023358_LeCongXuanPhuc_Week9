@@ -1,11 +1,11 @@
-package com.auction.client;
+package src.main.java.com.auction.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.net.Socket;
 
-import com.auction.entity.Message;
+import  src.main.java.com.auction.entity.Message;
 
 public class ClientConnection {
     private Socket socket;

@@ -1,4 +1,4 @@
-package com.auction.entity;
+package src.main.java.com.auction.entity;
 
 /**
  * Bản hợp nhất: Giữ Profile/Balance của Nhật và tính năng Nhận thông báo của Tùng

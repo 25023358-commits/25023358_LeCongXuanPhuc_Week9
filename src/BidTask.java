@@ -1,7 +1,7 @@
 package src;
 
 import java.util.concurrent.*;
-
+import src.main.java.com.auction.service.AuctionManager;
 public class BidTask implements Runnable {
     private String itemId;
     private String user;

@@ -1,8 +1,8 @@
-package com.auction;
+package src.main.java.com.auction.app;
 
 
-import com.auction.server.AuctionServer;
-import com.auction.client.AuctionClient;
+import src.main.java.com.auction.server.AuctionServer;
+import src.main.java.com.auction.client.AuctionClient;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;

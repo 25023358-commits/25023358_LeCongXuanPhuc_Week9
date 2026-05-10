@@ -1,4 +1,4 @@
-package com.auction.entity;
+package src.main.java.com.auction.entity;
 
 public class BidRequest {
     private String itemId;

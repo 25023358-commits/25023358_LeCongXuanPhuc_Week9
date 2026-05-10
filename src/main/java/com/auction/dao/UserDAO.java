@@ -1,11 +1,12 @@
-package com.auction.dao;
+package src.main.java.com.auction.dao;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.auction.entity.*;
-import com.auction.util.DBHelper;
+import src.main.java.com.auction.entity.*;
+import src.main.java.com.auction.util.DBHelper;
+import src.main.java.com.auction.entity.User;
 
 public class UserDAO {
     public void saveUser(User user) {

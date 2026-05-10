@@ -1,7 +1,9 @@
+package src.test.java.com.auction.service;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import com.auction.service.DefaultBiddingStrategy;
+import src.main.java.com.auction.service.DefaultBiddingStrategy;
 
 public class DefaultBiddingStrategyTest {
 

@@ -1,4 +1,4 @@
-package com.auction.util;
+package src.main.java.com.auction.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

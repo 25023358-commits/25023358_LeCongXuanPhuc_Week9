@@ -1,5 +1,5 @@
 // Lớp Art kế thừa Item theo Factory Pattern
-package com.auction.entity;
+package src.main.java.com.auction.entity;
 public class Art extends Item {
     private String artistName;
 

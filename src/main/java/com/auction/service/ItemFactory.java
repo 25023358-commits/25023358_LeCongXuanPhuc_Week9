@@ -1,14 +1,16 @@
-package com.auction.service;
+package src.main.java.com.auction.service;
 
-import com.auction.entity.*;
+import src.main.java.com.auction.entity.*;
 
 public class ItemFactory {
-    public static Item createItem(String type, String id, String name, double price, int extraAttr) {
-        switch (type.toLowerCase()) {    // chuyển chữ cái in hoa về chữ cái thường
+    public static Item createItem(String type, String id, String name, double price, Object... extraAttrs) {
+        switch (type.toLowerCase()) {
             case "electronics":
-                return new Electronics(id, name, price, extraAttr);
+                return new Electronics(id, name, price, (Integer) extraAttrs[0]);
             case "art":
-                return new Art(id, name, price, String.valueOf(extraAttr));  // vì extraAttr là int mà Art cần string nên phải chuyển về String.
+                return new Art(id, name, price, (String) extraAttrs[0]);
+            case "vehicle":
+                return new Vehicle(id, name, price, (String) extraAttrs[0], (String) extraAttrs[1], (Integer) extraAttrs[2]);
             default:
                 throw new IllegalArgumentException("Unknown item type");
         }
