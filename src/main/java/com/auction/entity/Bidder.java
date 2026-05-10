@@ -1,4 +1,6 @@
-package src.main.java.com.auction.entity;
+package com.auction.entity;
+import com.auction.entity.BidObserver;  // ← Thêm dòng này
+
 
 /**
  * Bản hợp nhất: Giữ Profile/Balance của Nhật và tính năng Nhận thông báo của Tùng
