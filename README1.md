@@ -1,35 +1,5 @@
 # 📌 HƯỚNG DẪN SỬ DỤNG HỆ THỐNG ĐẤU GIÁ (Phiên bản Đơn giản)
 
-## 📁 Cấu trúc dự án (Simplified)
-
-```
-com.auction/
-├── entity/          # Các lớp dữ liệu
-│   ├── Entity.java  # Base class
-│   ├── User.java    # Base user
-│   ├── Bidder.java  # Người đấu giá
-│   ├── Seller.java  # Người bán
-│   ├── Admin.java   # Quản trị
-│   ├── Item.java    # Sản phẩm (abstract)
-│   ├── Electronics.java
-│   ├── Art.java
-│   ├── Vehicle.java
-│   ├── BidTransaction.java
-│   ├── Message.java
-│   └── Observer interfaces
-├── service/         # Các service
-│   ├── AuctionManagerSimplified.java    # Quản lý phiên đấu giá
-│   ├── AuthServiceSimplified.java       # Xác thực người dùng
-│   ├── ItemFactorySimplified.java       # Tạo sản phẩm
-│   └── BiddingServiceSimplified.java    # Validation bid
-├── dao/            # Database access (tùy chọn)
-├── client/         # Client (tùy chọn)
-├── server/         # Server (tùy chọn)
-└── app/
-    ├── Main.java          # Phiên bản đầy đủ
-    └── MainSimplified.java # Phiên bản đơn giản
-```
-
 ## 🎯 Các chức năng bắt buộc đã implement
 
 ✅ **Quản lý người dùng**
@@ -121,4 +91,17 @@ manager.printTransactionHistory("L01");
 - [x] Unit Tests (JUnit)
 - [x] Maven build
 - [x] Git version control
-
+_______Bố cục triển khai của các package______
+|-com.auction.app: Chứa lớp chính của ứng dụng (Main.java) để khởi động hệ thống.
+|-com.auction.client: Xử lý logic phía client, bao gồm kết nối và giao tiếp với server (AuctionClient.java, ClientConnection.java).
+|-com.auction.config: Cấu hình hệ thống, như kết nối cơ sở dữ liệu (DatabaseConfig.java).
+|-com.auction.controller: Các controller cho giao diện người dùng (UI), xử lý logic điều khiển (BiddingController.java, LoginController.java).
+|-com.auction.dao: Data Access Objects (DAO) để tương tác với cơ sở dữ liệu (BidTransactionDAO.java, ItemDAO.java, UserDAO.java).
+|-com.auction.entity: Các lớp thực thể (entities) đại diện cho dữ liệu miền, như User, Item, BidTransaction, v.v. (Admin.java, Art.java, Bidder.java, Item.java, Seller.java, v.v.).
+|-com.auction.exception: Các ngoại lệ tùy chỉnh (AuctionException.java).
+|-com.auction.server: Logic phía server để quản lý đấu giá (AuctionServer.java).
+|-com.auction.service: Các dịch vụ nghiệp vụ, bao gồm quản lý đấu giá, xác thực, đấu giá tự động, thông báo, v.v. (AuctionManager.java, AuthService.java, BiddingService.java, NotificationService.java, v.v.).
+|-com.auction.util: Các tiện ích hỗ trợ, như trợ giúp cơ sở dữ liệu (DBHelper.java).
+!-Cấu trúc Thêm:
+src/test/java/com/auction/service/: Chứa các lớp kiểm thử (tests) cho các dịch vụ (AuctionManagerTest.java, AuthServiceTest.java, DefaultBiddingStrategyTest.java).
+src/main/resources/: Tài nguyên như file FXML cho giao diện (bidding.fxml, login.fxml).
