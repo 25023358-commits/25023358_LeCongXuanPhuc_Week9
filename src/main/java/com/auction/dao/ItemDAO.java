@@ -3,7 +3,6 @@ package com.auction.dao;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.auction.entity.*;
 import com.auction.util.DBHelper;
 
