@@ -4,10 +4,11 @@ import com.auction.util.DBHelper;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.auction.entity.*;
-import com.auction.util.DBHelper;
+
 public class BidTransactionDAO {
+    private String status;
+
     public void setStatus(String status) {
         this.status = status;
     }
