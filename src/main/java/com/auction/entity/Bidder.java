@@ -1,5 +1,5 @@
 package com.auction.entity;
-import com.auction.entity.BidObserver;  // ← Thêm dòng này
+import com.auction.entity.BidObserver;
 
 
 /**
