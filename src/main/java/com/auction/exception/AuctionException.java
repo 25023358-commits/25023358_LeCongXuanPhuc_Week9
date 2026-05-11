@@ -1,4 +1,4 @@
-package src.main.java.com.auction.exception;
+package com.auction.exception;
 
 /**
  * Custom exception for auction-related errors
