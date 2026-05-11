@@ -1,78 +1,191 @@
 package com.auction.dao;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.auction.entity.*;
 import com.auction.util.DBHelper;
+import java.sql.*;
+import java.util.*;
 
 public class ItemDAO {
-    public void saveItem(Item item, String sellerId) {
-        String sql = "INSERT OR REPLACE INTO items (id, name, starting_price, current_highest_bid, highest_bidder_id, type, seller_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBHelper.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, item.getId());
-            pstmt.setString(2, item.getName());
-            pstmt.setDouble(3, item.getStartingPrice());
-            pstmt.setDouble(4, item.getCurrentHighestBid());
-            pstmt.setString(5, item.getHighestBidderId());
-            if (item instanceof Electronics) {
-                pstmt.setString(6, "ELECTRONICS");
-            } else if (item instanceof Art) {
-                pstmt.setString(6, "ART");
-            } else {
-                pstmt.setString(6, "ITEM");
-            }
-            pstmt.setString(7, sellerId);
-            pstmt.setString(8, "OPEN"); // Default status
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+    // =========================================================
+    // Record class — ánh xạ bảng items
+    // warranty_months và artist_name có thể null tùy type
+    // =========================================================
+    public static class ItemRecord {
+        public String id;
+        public String name;
+        public String type;           // "ELECTRONICS" | "ART"
+        public double startingPrice;
+        public double currentBid;
+        public String sellerId;
+        public String status;         // OPEN|RUNNING|FINISHED|PAID|CANCELED
+        public Integer warrantyMonths;// null nếu là Art
+        public String artistName;     // null nếu là Electronics
+        public String createdAt;
+    }
+
+    // =========================================================
+    // CREATE — thêm Electronics
+    // =========================================================
+    public void insertElectronics(String id, String name, double startingPrice,
+                                  String sellerId, int warrantyMonths)
+            throws SQLException {
+
+        String sql = """
+            INSERT INTO items (id, name, type, starting_price, current_bid,
+                               seller_id, warranty_months)
+            VALUES (?, ?, 'ELECTRONICS', ?, ?, ?, ?)
+        """;
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, id);
+            stmt.setString(2, name);
+            stmt.setDouble(3, startingPrice);
+            stmt.setDouble(4, startingPrice); // current_bid = starting_price ban đầu
+            stmt.setString(5, sellerId);
+            stmt.setInt(6, warrantyMonths);
+            stmt.executeUpdate();
         }
     }
 
-    public Item getItemById(String id) {
+    // =========================================================
+    // CREATE — thêm Art
+    // =========================================================
+    public void insertArt(String id, String name, double startingPrice,
+                          String sellerId, String artistName)
+            throws SQLException {
+
+        String sql = """
+            INSERT INTO items (id, name, type, starting_price, current_bid,
+                               seller_id, artist_name)
+            VALUES (?, ?, 'ART', ?, ?, ?, ?)
+        """;
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, id);
+            stmt.setString(2, name);
+            stmt.setDouble(3, startingPrice);
+            stmt.setDouble(4, startingPrice);
+            stmt.setString(5, sellerId);
+            stmt.setString(6, artistName);
+            stmt.executeUpdate();
+        }
+    }
+
+    // =========================================================
+    // READ — tìm theo id
+    // =========================================================
+    public ItemRecord findById(String id) throws SQLException {
         String sql = "SELECT * FROM items WHERE id = ?";
-        try (Connection conn = DBHelper.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, id);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                String name = rs.getString("name");
-                double startingPrice = rs.getDouble("starting_price");
-                double currentBid = rs.getDouble("current_highest_bid");
-                String highestBidder = rs.getString("highest_bidder_id");
-                String type = rs.getString("type");
-                Item item;
-                if ("ELECTRONICS".equals(type)) {
-                    item = new Electronics(id, name, startingPrice, 12); // Placeholder warranty
-                } else if ("ART".equals(type)) {
-                    item = new Art(id, name, startingPrice, "Unknown"); // Placeholder artist
-                } else {
-                    item = new Electronics(id, name, startingPrice, 0); // Fallback
-                }
-                // Update current bid
-                if (currentBid > startingPrice) {
-                    item.updateHighestBid(currentBid, highestBidder);
-                }
-                return item;
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapRow(rs);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
 
-    public List<Item> getAllItems() {
-        List<Item> items = new ArrayList<>();
-        String sql = "SELECT * FROM items";
-        try (Connection conn = DBHelper.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                String id = rs.getString("id");
-                items.add(getItemById(id));
+    // =========================================================
+    // READ — lấy tất cả items (hiển thị danh sách cho bidder)
+    // =========================================================
+    public List<ItemRecord> findAll() throws SQLException {
+        String sql = "SELECT * FROM items ORDER BY created_at DESC";
+        List<ItemRecord> list = new ArrayList<>();
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return items;
+        return list;
+    }
+
+    // =========================================================
+    // READ — items của một seller cụ thể
+    // =========================================================
+    public List<ItemRecord> findBySeller(String sellerId) throws SQLException {
+        String sql = "SELECT * FROM items WHERE seller_id = ? ORDER BY created_at DESC";
+        List<ItemRecord> list = new ArrayList<>();
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, sellerId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        }
+        return list;
+    }
+
+    // =========================================================
+    // UPDATE — cập nhật giá bid cao nhất
+    // Gọi sau mỗi lần bid thành công trong AuctionManager
+    // =========================================================
+    public void updateCurrentBid(String itemId, double newBid) throws SQLException {
+        String sql = "UPDATE items SET current_bid = ? WHERE id = ?";
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setDouble(1, newBid);
+            stmt.setString(2, itemId);
+            stmt.executeUpdate();
+        }
+    }
+
+    // =========================================================
+    // UPDATE — đổi trạng thái item
+    // OPEN → RUNNING → FINISHED → PAID | CANCELED
+    // =========================================================
+    public void updateStatus(String itemId, String status) throws SQLException {
+        String sql = "UPDATE items SET status = ? WHERE id = ?";
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, status);
+            stmt.setString(2, itemId);
+            stmt.executeUpdate();
+        }
+    }
+
+    // =========================================================
+    // DELETE — seller xóa item của mình
+    // =========================================================
+    public void delete(String itemId) throws SQLException {
+        String sql = "DELETE FROM items WHERE id = ?";
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, itemId);
+            stmt.executeUpdate();
+        }
+    }
+
+    // =========================================================
+    // mapRow — chuyển ResultSet → ItemRecord
+    // =========================================================
+    private ItemRecord mapRow(ResultSet rs) throws SQLException {
+        ItemRecord r    = new ItemRecord();
+        r.id            = rs.getString("id");
+        r.name          = rs.getString("name");
+        r.type          = rs.getString("type");
+        r.startingPrice = rs.getDouble("starting_price");
+        r.currentBid    = rs.getDouble("current_bid");
+        r.sellerId      = rs.getString("seller_id");
+        r.status        = rs.getString("status");
+        r.createdAt     = rs.getString("created_at");
+
+        // warrantyMonths: 0 trong SQLite nếu null — cần check bằng wasNull()
+        int w = rs.getInt("warranty_months");
+        r.warrantyMonths = rs.wasNull() ? null : w;
+
+        r.artistName    = rs.getString("artist_name"); // null nếu không có
+        return r;
     }
 }

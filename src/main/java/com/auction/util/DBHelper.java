@@ -51,6 +51,19 @@ public class DBHelper {
                     ")";
             stmt.execute(createBidsTable);
 
+            String createAuctionsTable = "CREATE TABLE IF NOT EXISTS auctions (" +
+                    "id TEXT PRIMARY KEY," +
+                    "item_id TEXT UNIQUE," +
+                    "status TEXT DEFAULT 'OPEN'," +
+                    "start_time INTEGER," +
+                    "end_time INTEGER," +
+                    "winner_id TEXT," +
+                    "final_price REAL," +
+                    "FOREIGN KEY (item_id) REFERENCES items(id)," +
+                    "FOREIGN KEY (winner_id) REFERENCES users(id)" +
+                    ")";
+            stmt.execute(createAuctionsTable);
+
         } catch (SQLException e) {
             e.printStackTrace();
         }

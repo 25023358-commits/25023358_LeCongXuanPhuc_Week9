@@ -1,13 +1,16 @@
 package com.auction.dao;
 
+import com.auction.util.DBHelper;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.auction.entity.*;
 import com.auction.util.DBHelper;
-
 public class BidTransactionDAO {
+    public void setStatus(String status) {
+        this.status = status;
+    }
     public void saveBid(BidTransaction bid) {
         String sql = "INSERT INTO bids (id, item_id, bidder_id, bid_amount, timestamp, status) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBHelper.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -43,5 +46,15 @@ public class BidTransactionDAO {
             e.printStackTrace();
         }
         return bids;
+    }
+    public void markAllLost(String itemId) {
+        String sql = "UPDATE bids SET status = 'LOST' WHERE item_id = ? AND status = 'WINNING'";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, itemId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

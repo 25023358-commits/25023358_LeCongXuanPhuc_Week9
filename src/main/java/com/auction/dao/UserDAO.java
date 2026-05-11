@@ -1,71 +1,143 @@
 package com.auction.dao;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.auction.entity.*;
 import com.auction.util.DBHelper;
-import com.auction.entity.User;
+import java.sql.*;
+import java.util.*;
 
 public class UserDAO {
-    public void saveUser(User user) {
-        String sql = "INSERT OR REPLACE INTO users (id, username, password, role, balance) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DBHelper.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, user.getId());
-            pstmt.setString(2, user.getUsername());
-            pstmt.setString(3, "password"); // Placeholder, in real app hash password
-            pstmt.setString(4, user.getRole());
-            if (user instanceof Bidder) {
-                pstmt.setDouble(5, ((Bidder) user).getBalance());
-            } else {
-                pstmt.setDouble(5, 0.0);
-            }
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+
+    // =========================================================
+    // Record class — ánh xạ 1-1 với cột trong bảng users
+    // Không phải User.java domain class — chỉ chứa dữ liệu thô
+    // =========================================================
+    public static class UserRecord {
+        public String id;
+        public String username;
+        public String email;
+        public String hashedPassword; // không bao giờ trả về plain text
+        public String role;
+        public double balance;
+        public String createdAt;
     }
 
-    public User getUserByUsername(String username) {
+    // =========================================================
+    // CREATE — thêm user mới (dùng khi đăng ký)
+    // =========================================================
+    public void insert(String id, String username, String email,
+                       String hashedPassword, String role, double balance)
+            throws SQLException {
+
+        String sql = """
+            INSERT INTO users (id, username, email, password, role, balance)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """;
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, id);
+            stmt.setString(2, username);
+            stmt.setString(3, email);
+            stmt.setString(4, hashedPassword);
+            stmt.setString(5, role);
+            stmt.setDouble(6, balance);
+            stmt.executeUpdate();
+        }
+        // try-with-resources tự đóng stmt — không cần stmt.close()
+    }
+
+    // =========================================================
+    // READ — tìm theo username (dùng khi đăng nhập)
+    // Trả về null nếu không tìm thấy
+    // =========================================================
+    public UserRecord findByUsername(String username) throws SQLException {
         String sql = "SELECT * FROM users WHERE username = ?";
-        try (Connection conn = DBHelper.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                String id = rs.getString("id");
-                String role = rs.getString("role");
-                double balance = rs.getDouble("balance");
-                switch (role) {
-                    case "BIDDER": return new Bidder(id, username, balance);
-                    case "SELLER": return new Seller(id, username);
-                    case "ADMIN": return new Admin(id, username);
-                }
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, username);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapRow(rs);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
 
-    public List<User> getAllUsers() {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users";
-        try (Connection conn = DBHelper.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                String id = rs.getString("id");
-                String username = rs.getString("username");
-                String role = rs.getString("role");
-                double balance = rs.getDouble("balance");
-                switch (role) {
-                    case "BIDDER": users.add(new Bidder(id, username, balance)); break;
-                    case "SELLER": users.add(new Seller(id, username)); break;
-                    case "ADMIN": users.add(new Admin(id, username)); break;
-                }
+    // =========================================================
+    // READ — tìm theo id
+    // =========================================================
+    public UserRecord findById(String id) throws SQLException {
+        String sql = "SELECT * FROM users WHERE id = ?";
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapRow(rs);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return users;
+        return null;
+    }
+
+    // =========================================================
+    // READ — lấy tất cả theo role (BIDDER | SELLER | ADMIN)
+    // =========================================================
+    public List<UserRecord> findByRole(String role) throws SQLException {
+        String sql = "SELECT * FROM users WHERE role = ? ORDER BY created_at DESC";
+        List<UserRecord> list = new ArrayList<>();
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, role);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        }
+        return list;
+    }
+
+    // =========================================================
+    // UPDATE — cập nhật balance của Bidder
+    // Dùng khi bidder thắng phiên (trừ tiền) hoặc nạp tiền
+    // =========================================================
+    public void updateBalance(String userId, double newBalance) throws SQLException {
+        String sql = "UPDATE users SET balance = ? WHERE id = ?";
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setDouble(1, newBalance);
+            stmt.setString(2, userId);
+            stmt.executeUpdate();
+        }
+    }
+
+    // =========================================================
+    // DELETE — xóa user (Admin dùng)
+    // =========================================================
+    public void delete(String userId) throws SQLException {
+        String sql = "DELETE FROM users WHERE id = ?";
+
+        try (PreparedStatement stmt = DBHelper.getConnection()
+                .prepareStatement(sql)) {
+            stmt.setString(1, userId);
+            stmt.executeUpdate();
+        }
+    }
+
+    // =========================================================
+    // mapRow — tái sử dụng ở mọi method, đổi cột chỉ sửa 1 chỗ
+    // =========================================================
+    private UserRecord mapRow(ResultSet rs) throws SQLException {
+        UserRecord r    = new UserRecord();
+        r.id            = rs.getString("id");
+        r.username      = rs.getString("username");
+        r.email         = rs.getString("email");
+        r.hashedPassword= rs.getString("password");
+        r.role          = rs.getString("role");
+        r.balance       = rs.getDouble("balance");
+        r.createdAt     = rs.getString("created_at");
+        return r;
     }
 }
