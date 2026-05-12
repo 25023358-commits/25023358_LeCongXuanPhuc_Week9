@@ -1,0 +1,91 @@
+/* ==== STYLE CHÍNH ==== */
+.root {
+    /* Sử dụng các font chữ hiện đại, không chân (sans-serif) */
+    -fx-font-family: "Inter", "Roboto", "Open Sans", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ==== BÊN TRÁI: Gradient Xanh đậm ==== */
+.left-pane {
+    /* Tạo dải màu gradient tuyến tính chéo */
+    -fx-background-color: linear-gradient(to bottom right, #1a2a6c, #112240, #2980b9);
+}
+
+/* Hình khối trừu tượng mờ ảo */
+.abstract-circle-1 {
+    -fx-fill: linear-gradient(to bottom right, rgba(255,255,255,0.1), rgba(255,255,255,0.0));
+}
+.abstract-circle-2 {
+    -fx-fill: linear-gradient(to top left, rgba(52,152,219,0.3), rgba(52,152,219,0.0));
+}
+
+/* Chữ Welcome */
+.welcome-text {
+    -fx-fill: white;
+    -fx-font-size: 48px;
+    -fx-font-weight: 900;
+    /* Có thể thêm letter-spacing để chữ thoáng hơn nếu muốn, nhưng JavaFX mặc định khá tốt */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5); /* Đổ bóng chữ */
+}
+
+.subtitle-text {
+    -fx-fill: #ecf0f1;
+    -fx-font-size: 16px;
+    -fx-line-spacing: 5px;
+}
+
+/* ==== BÊN PHẢI: Trắng Tối giản ==== */
+.right-pane {
+    -fx-background-color: #ffffff;
+}
+
+.form-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #2c3e50;
+}
+
+/* Navbar Button */
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #7f8c8d;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+.nav-button:hover {
+    -fx-text-fill: #2980b9;
+}
+
+/* ==== NÚT BẤM CHÍNH ==== */
+/* 1. Nút Sign Up (Màu xanh, bo tròn) */
+.btn-filled {
+    -fx-background-color: #2980b9;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 25; /* Bo tròn cực mạnh giống viên thuốc */
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(41,128,185,0.4), 10, 0, 0, 4);
+}
+.btn-filled:hover {
+    -fx-background-color: #1f618d; /* Đổi màu khi hover */
+    -fx-translate-y: -2; /* Hiệu ứng nhấc lên nhẹ */
+}
+.btn-filled:pressed {
+    -fx-translate-y: 0;
+}
+
+/* 2. Nút Sign In (Viền outline, nền trong) */
+.btn-outline {
+    -fx-background-color: transparent;
+    -fx-border-color: #2980b9;
+    -fx-border-width: 2px;
+    -fx-text-fill: #2980b9;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-border-radius: 25;
+    -fx-background-radius: 25;
+    -fx-cursor: hand;
+}
+.btn-outline:hover {
+    -fx-background-color: rgba(41,128,185,0.1); /* Nền mờ khi hover */
+}

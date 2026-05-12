@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.effect.DropShadow?>
+
+<HBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.WelcomeController"
+      prefHeight="600" prefWidth="900" stylesheets="@welcome-style.css">
+
+    <!-- PHẦN BÊN TRÁI (60% diện tích) - Gradient & Hình khối -->
+    <StackPane HBox.hgrow="ALWAYS" prefWidth="540" styleClass="left-pane">
+        <!-- Các hình khối giả lập 3D đơn giản bằng CSS & Shape -->
+        <Circle radius="150" styleClass="abstract-circle-1" StackPane.alignment="TOP_LEFT" translateX="-50" translateY="-50"/>
+        <Circle radius="80" styleClass="abstract-circle-2" StackPane.alignment="BOTTOM_RIGHT" translateX="30" translateY="40"/>
+
+        <VBox alignment="CENTER" spacing="20">
+            <Text text="Welcome Back!" styleClass="welcome-text"/>
+            <Text text="Discover exclusive items and bid in real-time." styleClass="subtitle-text" wrappingWidth="350" textAlignment="CENTER"/>
+        </VBox>
+    </StackPane>
+
+    <!-- PHẦN BÊN PHẢI (40% diện tích) - Tối giản & Nút bấm -->
+    <VBox prefWidth="360" alignment="CENTER" styleClass="right-pane" spacing="30">
+        <padding>
+            <Insets top="40" right="40" bottom="40" left="40"/>
+        </padding>
+
+        <!-- Navbar giả lập nhỏ ở trên -->
+        <HBox alignment="TOP_RIGHT" VBox.vgrow="NEVER">
+            <Button text="Help" styleClass="nav-button"/>
+        </HBox>
+
+        <VBox alignment="CENTER" spacing="25" VBox.vgrow="ALWAYS">
+            <Label text="Get Started" styleClass="form-title"/>
+            <Label text="Join the auction system today." textFill="#7f8c8d"/>
+
+            <VBox spacing="15" alignment="CENTER" style="-fx-padding: 20 0 0 0;">
+                <!-- Nút Sign In (Đăng nhập) -->
+                <Button text="Sign In" onAction="#goToLogin" styleClass="btn-outline" prefWidth="200" prefHeight="45"/>
+
+                <!-- Nút Sign Up (Đăng ký) -->
+                <Button text="Sign Up" onAction="#goToRegister" styleClass="btn-filled" prefWidth="200" prefHeight="45"/>
+            </VBox>
+        </VBox>
+
+        <Label text="© 2026 Auction System Group 7" textFill="#bdc3c7" style="-fx-font-size: 11px;"/>
+    </VBox>
+
+</HBox>

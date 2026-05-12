@@ -1,6 +1,5 @@
 package com.auction.controller;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -17,10 +16,7 @@ import javafx.stage.Stage;
 import com.auction.client.ClientConnection;
 import com.auction.entity.LoginRequest;
 import com.auction.entity.Message;
-import com.auction.entity.Item;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import java.util.List;
+
 import java.io.IOException;
 
 public class LoginController {
@@ -34,7 +30,7 @@ public class LoginController {
     private Button loginButton;
 
     private ClientConnection connection;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public LoginController() {
         try {
@@ -100,8 +96,8 @@ public class LoginController {
             stage.setTitle("Live Auction System - User: " + username);
             stage.setScene(new Scene(root, 750, 500));
         } catch (Exception e) {
-            e.printStackTrace();
-            messageLabel.setText("Error loading dashboard.");
+            System.err.println("Error loading dashboard: " + e.getMessage());
+            Platform.runLater(() -> messageLabel.setText("Error loading dashboard."));
         }
     }
     
@@ -124,7 +120,7 @@ public class LoginController {
                 */
             }
         } catch (Exception e) {
-             System.out.println("Could not fetch initial items: " + e.getMessage());
+             System.err.println("Could not fetch initial items: " + e.getMessage());
         }
     }
 
@@ -140,8 +136,8 @@ public class LoginController {
             stage.setTitle("Create New Account");
 
         } catch (IOException e) {
-            e.printStackTrace();
-            messageLabel.setText("Error: Could not load registration screen.");
+            System.err.println("Error: Could not load registration screen: " + e.getMessage());
+            Platform.runLater(() -> messageLabel.setText("Error: Could not load registration screen."));
         }
     }
 }
