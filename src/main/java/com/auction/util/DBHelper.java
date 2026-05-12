@@ -17,10 +17,12 @@ public class DBHelper {
             // Create tables
             String createUsersTable = "CREATE TABLE IF NOT EXISTS users (" +
                     "id TEXT PRIMARY KEY," +
-                    "username TEXT UNIQUE," +
-                    "password TEXT," +
-                    "role TEXT," +
-                    "balance REAL DEFAULT 0.0" +
+                    "username TEXT UNIQUE NOT NULL," +
+                    "email TEXT UNIQUE," +
+                    "password TEXT NOT NULL," +
+                    "role TEXT NOT NULL," +
+                    "balance REAL DEFAULT 0.0," +
+                    "created_at INTEGER DEFAULT (strftime('%s','now'))" +
                     ")";
             stmt.execute(createUsersTable);
 
@@ -41,11 +43,11 @@ public class DBHelper {
 
             String createBidsTable = "CREATE TABLE IF NOT EXISTS bids (" +
                     "id TEXT PRIMARY KEY," +
-                    "item_id TEXT," +
-                    "bidder_id TEXT," +
-                    "bid_amount REAL," +
-                    "timestamp INTEGER," +
-                    "status TEXT," +
+                    "item_id TEXT NOT NULL," +
+                    "bidder_id TEXT NOT NULL," +
+                    "bid_amount REAL NOT NULL," +
+                    "timestamp INTEGER NOT NULL," +
+                    "status TEXT DEFAULT 'WINNING'," +
                     "FOREIGN KEY (item_id) REFERENCES items(id)," +
                     "FOREIGN KEY (bidder_id) REFERENCES users(id)" +
                     ")";
