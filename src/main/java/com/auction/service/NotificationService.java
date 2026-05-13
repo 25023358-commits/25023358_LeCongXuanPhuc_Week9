@@ -35,8 +35,4 @@ public class NotificationService {
     public void notifyRealtime(String itemId, double bidAmount, String bidderId) {
         realtime.notifyRealtime(itemId, bidAmount, bidderId);
     }
-
-    public void notifySniping(String itemId, int extraSeconds) {
-        realtime.notifySniping(itemId, extraSeconds);
-    }
 }

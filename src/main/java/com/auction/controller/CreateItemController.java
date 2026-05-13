@@ -38,10 +38,6 @@ public class CreateItemController {
     @FXML
     private TextField artistField;
     @FXML
-    private VBox vehiclePane;
-    @FXML
-    private TextField engineCCField;
-    @FXML
     private Label messageLabel;
 
     private ClientConnection connection;
@@ -62,25 +58,24 @@ public class CreateItemController {
 
     @FXML
     public void initialize() {
-        categoryComboBox.getItems().addAll("Electronics", "Art", "Vehicle");
+        categoryComboBox.getItems().addAll("Electronics", "Art");
 
         categoryComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-            electronicsPane.setVisible(false);
-            electronicsPane.setManaged(false);
-            artPane.setVisible(false);
-            artPane.setManaged(false);
-            vehiclePane.setVisible(false);
-            vehiclePane.setManaged(false);
-
-            if ("Electronics".equals(newValue)) {
+            if (newValue == null) {
+                electronicsPane.setVisible(false);
+                electronicsPane.setManaged(false);
+                artPane.setVisible(false);
+                artPane.setManaged(false);
+            } else if (newValue.equals("Electronics")) {
                 electronicsPane.setVisible(true);
                 electronicsPane.setManaged(true);
-            } else if ("Art".equals(newValue)) {
+                artPane.setVisible(false);
+                artPane.setManaged(false);
+            } else if (newValue.equals("Art")) {
+                electronicsPane.setVisible(false);
+                electronicsPane.setManaged(false);
                 artPane.setVisible(true);
                 artPane.setManaged(true);
-            } else if ("Vehicle".equals(newValue)) {
-                vehiclePane.setVisible(true);
-                vehiclePane.setManaged(true);
             }
         });
     }
@@ -127,9 +122,6 @@ public class CreateItemController {
                     return;
                 }
                 newItem = ItemFactory.createItem("art", itemId, name, description, price, startTime, endTime, currentSeller.getId(), artist);
-            } else if (category.equals("Vehicle")) {
-                int engineCC = Integer.parseInt(engineCCField.getText());
-                newItem = ItemFactory.createItem("vehicle", itemId, name, description, price, startTime, endTime, currentSeller.getId(), engineCC);
             }
 
             if (newItem == null) return;

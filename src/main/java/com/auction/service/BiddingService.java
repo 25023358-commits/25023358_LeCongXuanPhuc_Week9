@@ -45,19 +45,16 @@ public class BiddingService {
         }
 
         // Kiểm tra chống sniping
-        int status = antiSniping.checkAndExtend(itemId);
-        if (status == 0) {
+        if (!antiSniping.checkAndExtend(itemId)) {
             System.out.println("Auction ended for " + itemId + "! Cannot bid.");
             return false;
-        } else if (status == 2) {
-            // Trường hợp GIA HẠN
+        } else {
+            // Cập nhật lại endTime của item nếu bị gia hạn
             long rem = antiSniping.getRemainingSeconds(itemId);
             LocalDateTime newEnd = LocalDateTime.now().plusSeconds(rem);
             item.setEndTime(newEnd);
             try {
                 itemDAO.save(item); // Lưu cập nhật thời gian vào DB
-                // Thông báo realtime về việc gia hạn
-                notificationService.notifySniping(itemId, (int) rem);
             } catch (SQLException ignored) {}
         }
 

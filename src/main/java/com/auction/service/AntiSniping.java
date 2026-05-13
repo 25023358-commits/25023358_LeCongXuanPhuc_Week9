@@ -27,32 +27,30 @@ public class AntiSniping {
         System.out.println("🎯 Auction started for " + itemId + " | Ends in " + durationSeconds + "s");
     }
 
-    /**
-     * @return 0: Ended, 1: Active, 2: Extended
-     */
-    public int checkAndExtend(String itemId) {
+    // Kiểm tra và gia hạn nếu thầu trong 10 giây cuối (chống sniping)
+    public boolean checkAndExtend(String itemId) {
         Long endTime = auctionEndTime.get(itemId);
-        if (endTime == null) return 1;
+        if (endTime == null) return true;
 
         long remaining = endTime - System.currentTimeMillis();
         long remainingSeconds = remaining / 1000;
+
+        // Nếu còn ít hơn 10 giây và có thầu mới -> gia hạn thêm 20 giây
+        if (remainingSeconds <= 10 && remainingSeconds > 0) {
+            long newEndTime = System.currentTimeMillis() + 20000; // +20 giây
+            auctionEndTime.put(itemId, newEndTime);
+            System.out.println("🛡️ [Anti-Sniping] " + itemId + " extended by 20s!");
+            return true;
+        }
 
         // Hết giờ
         if (remaining <= 0) {
             auctionEndTime.remove(itemId);
             System.out.println("🔚 Auction ended for " + itemId);
-            return 0;
+            return false;
         }
 
-        // Nếu còn ít hơn 10 giây và có thầu mới -> gia hạn thêm 20 giây
-        if (remainingSeconds <= 10) {
-            long newEndTime = System.currentTimeMillis() + 20000; // +20 giây
-            auctionEndTime.put(itemId, newEndTime);
-            System.out.println("🛡️ [Anti-Sniping] " + itemId + " extended by 20s!");
-            return 2;
-        }
-
-        return 1; // đấu giá tiếp tục bình thường
+        return true; // đấu giá tiếp tục
     }
 
     public long getRemainingSeconds(String itemId) {

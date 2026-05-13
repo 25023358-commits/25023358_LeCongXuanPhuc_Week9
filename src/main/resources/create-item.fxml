@@ -51,11 +51,6 @@
             <TextField fx:id="artistField" promptText="e.g., Leonardo da Vinci"/>
         </VBox>
 
-        <VBox fx:id="vehiclePane" spacing="15" managed="false" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="1">
-            <Label text="Engine CC:" style="-fx-font-weight: bold;"/>
-            <TextField fx:id="engineCCField" promptText="e.g., 2000"/>
-        </VBox>
-
         <columnConstraints>
             <ColumnConstraints/>
             <ColumnConstraints/>

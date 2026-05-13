@@ -40,20 +40,7 @@ public class AuctionScheduler {
                 if (item.getStatus() == Item.Status.OPEN && now.isAfter(item.getStartTime())) {
                     item.setStatus(Item.Status.RUNNING);
                     changed = true;
-                    
-                    // Khởi động AntiSniping cho item mới start
-                    long durationSeconds = java.time.Duration.between(now, item.getEndTime()).toSeconds();
-                    AntiSniping.getInstance().startAuction(item.getId(), (int) Math.max(0, durationSeconds));
-                    
                     System.out.println("🚀 Auction STARTED: " + item.getName());
-                }
-
-                // Đảm bảo AntiSniping track các item đang RUNNING (đề phòng server restart)
-                if (item.getStatus() == Item.Status.RUNNING && !AntiSniping.getInstance().isAuctionActive(item.getId())) {
-                    long durationSeconds = java.time.Duration.between(now, item.getEndTime()).toSeconds();
-                    if (durationSeconds > 0) {
-                        AntiSniping.getInstance().startAuction(item.getId(), (int) durationSeconds);
-                    }
                 }
 
                 // 2. Chuyển RUNNING -> FINISHED

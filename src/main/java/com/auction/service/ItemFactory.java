@@ -2,7 +2,6 @@ package com.auction.service;
 
 import com.auction.entity.Art;
 import com.auction.entity.Electronics;
-import com.auction.entity.Vehicle;
 import com.auction.entity.Item;
 
 import java.time.LocalDateTime;
@@ -39,13 +38,6 @@ public class ItemFactory {
                 }
                 String artistName = (String) extraAttrs[0];
                 return new Art(id, name, description, startingPrice, startTime, endTime, sellerId, artistName);
-
-            case "vehicle":
-                if (extraAttrs.length == 0 || !(extraAttrs[0] instanceof Integer)) {
-                    throw new IllegalArgumentException("Vehicle item requires engine CC (Integer).");
-                }
-                int engineCC = (Integer) extraAttrs[0];
-                return new Vehicle(id, name, description, startingPrice, startTime, endTime, sellerId, engineCC);
 
             default:
                 throw new IllegalArgumentException("Unknown item type: " + type);
