@@ -13,6 +13,8 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -214,7 +216,7 @@ public class AuctionServer {
             try {
                 String itemId = msg.getData();
                 List<BidTransaction> bids = new BidTransactionDAO().getBidsByItem(itemId);
-                out.println(objectMapper.writeValueAsString(new Message("BID_HISTORY", bids)));
+                out.println(objectMapper.writeValueAsString(new Message("BID_HISTORY", objectMapper.writeValueAsString(bids))));
             } catch (Exception e) {
                 try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); } catch (Exception ignored) {}
             }
@@ -229,7 +231,7 @@ public class AuctionServer {
                 Map<String, Object> stats = new HashMap<>();
                 stats.put("totalBids", count);
                 stats.put("highestBid", highest != null ? highest.getBidAmount() : 0.0);
-                out.println(objectMapper.writeValueAsString(new Message("ANALYTICS", stats)));
+                out.println(objectMapper.writeValueAsString(new Message("ANALYTICS", objectMapper.writeValueAsString(stats))));
             } catch (Exception e) {
                 try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); } catch (Exception ignored) {}
             }
@@ -239,7 +241,7 @@ public class AuctionServer {
             try {
                 String sellerId = msg.getData();
                 List<Item> items = new ItemDAO().findBySeller(sellerId);
-                out.println(objectMapper.writeValueAsString(new Message("SELLER_ITEMS", items)));
+                out.println(objectMapper.writeValueAsString(new Message("SELLER_ITEMS", objectMapper.writeValueAsString(items))));
             } catch (Exception e) {
                 try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); } catch (Exception ignored) {}
             }
