@@ -19,22 +19,22 @@ public class RegisterController {
 
     @FXML
     private TextField usernameField;
-
     @FXML
     private PasswordField passwordField;
-
+    @FXML
+    private TextField visiblePasswordField;
     @FXML
     private PasswordField confirmPasswordField;
-
+    @FXML
+    private TextField visibleConfirmPasswordField;
+    @FXML
+    private CheckBox showPasswordCheckBox;
     @FXML
     private RadioButton bidderRadioButton;
-
     @FXML
     private RadioButton sellerRadioButton;
-
     @FXML
     private Button registerButton;
-
     @FXML
     private Label messageLabel;
 
@@ -52,9 +52,34 @@ public class RegisterController {
 
     @FXML
     public void initialize() {
+        // Nhóm các RadioButton
         bidderRadioButton.setToggleGroup(roleToggleGroup);
         sellerRadioButton.setToggleGroup(roleToggleGroup);
         bidderRadioButton.setSelected(true);
+
+        // Đồng bộ hóa nội dung giữa các ô password
+        visiblePasswordField.textProperty().bindBidirectional(passwordField.textProperty());
+        visibleConfirmPasswordField.textProperty().bindBidirectional(confirmPasswordField.textProperty());
+
+        // Thêm listener cho checkbox
+        showPasswordCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            togglePasswordVisibility(passwordField, visiblePasswordField, newValue);
+            togglePasswordVisibility(confirmPasswordField, visibleConfirmPasswordField, newValue);
+        });
+    }
+
+    private void togglePasswordVisibility(PasswordField pf, TextField tf, boolean show) {
+        if (show) {
+            tf.setVisible(true);
+            tf.setManaged(true);
+            pf.setVisible(false);
+            pf.setManaged(false);
+        } else {
+            tf.setVisible(false);
+            tf.setManaged(false);
+            pf.setVisible(true);
+            pf.setManaged(true);
+        }
     }
 
     @FXML
@@ -79,7 +104,6 @@ public class RegisterController {
             return;
         }
 
-        // Tạm thời để email mặc định, sau này có thể thêm trường email vào giao diện
         String email = username + "@example.com";
 
         try {
@@ -98,7 +122,6 @@ public class RegisterController {
                 Platform.runLater(() -> {
                     messageLabel.setTextFill(javafx.scene.paint.Color.GREEN);
                     messageLabel.setText("Registration successful! You can now login.");
-                    // Bạn có thể tự động chuyển hướng về màn hình Login sau vài giây ở đây
                 });
             } else {
                 Platform.runLater(() -> {

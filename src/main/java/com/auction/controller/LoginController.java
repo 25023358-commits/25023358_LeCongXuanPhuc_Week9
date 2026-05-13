@@ -1,5 +1,6 @@
 package com.auction.controller;
 
+import com.auction.entity.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -7,10 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import com.auction.client.ClientConnection;
@@ -25,6 +23,10 @@ public class LoginController {
     @FXML
     private PasswordField passwordField;
     @FXML
+    private TextField visiblePasswordField;
+    @FXML
+    private CheckBox showPasswordCheckBox;
+    @FXML
     private Label messageLabel;
     @FXML
     private Button loginButton;
@@ -38,6 +40,17 @@ public class LoginController {
         } catch (Exception e) {
             Platform.runLater(() -> messageLabel.setText("Error: Cannot connect to server."));
         }
+    }
+
+    @FXML
+    public void initialize() {
+        visiblePasswordField.textProperty().bindBidirectional(passwordField.textProperty());
+        showPasswordCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            visiblePasswordField.setVisible(newValue);
+            visiblePasswordField.setManaged(newValue);
+            passwordField.setVisible(!newValue);
+            passwordField.setManaged(!newValue);
+        });
     }
 
     @FXML
@@ -61,10 +74,13 @@ public class LoginController {
             Message response = connection.receiveMessage();
             
             if ("LOGIN_SUCCESS".equals(response.getType())) {
+                // Deserialization của đối tượng User từ JSON
+                User loggedInUser = objectMapper.readValue(response.getData(), User.class);
+                
                 Platform.runLater(() -> {
                     messageLabel.setTextFill(javafx.scene.paint.Color.GREEN);
                     messageLabel.setText("Login successful. Loading dashboard...");
-                    navigateToAuctionDashboard(username);
+                    navigateToAuctionDashboard(loggedInUser);
                 });
             } else {
                 Platform.runLater(() -> {
@@ -80,21 +96,20 @@ public class LoginController {
         }
     }
 
-    private void navigateToAuctionDashboard(String username) {
+    private void navigateToAuctionDashboard(User user) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/auction.fxml"));
             Parent root = loader.load();
 
             AuctionController controller = loader.getController();
-            controller.setClientConnection(connection);
-            controller.setCurrentUserId(username);
+            controller.setConnection(connection);
+            controller.setCurrentUser(user); // Truyền cả đối tượng User
             
-            // Yêu cầu server gửi danh sách item
             fetchInitialItems(controller);
 
             Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.setTitle("Live Auction System - User: " + username);
-            stage.setScene(new Scene(root, 750, 500));
+            stage.setTitle("Live Auction System - User: " + user.getUsername());
+            stage.setScene(new Scene(root, 900, 600));
         } catch (Exception e) {
             System.err.println("Error loading dashboard: " + e.getMessage());
             Platform.runLater(() -> messageLabel.setText("Error loading dashboard."));
@@ -108,16 +123,8 @@ public class LoginController {
             
             Message response = connection.receiveMessage();
             if ("ITEM_LIST".equals(response.getType())) {
-                // Sửa lỗi: Cần tạo một lớp Wrapper hoặc đọc trực tiếp list từ JSON
-                // Ở đây chúng ta tạm dùng mảng ảo để test UI do chưa đồng bộ entity Item với ItemRecord của DAO
-                // (Chờ bạn hoàn thiện lớp Item)
                 System.out.println("Items fetched: " + response.getData());
-                
-                /* Code thật sẽ như sau:
-                List<Item> items = objectMapper.readValue(response.getData(), new TypeReference<List<Item>>(){});
-                ObservableList<Item> observableItems = FXCollections.observableArrayList(items);
-                Platform.runLater(() -> controller.loadItems(observableItems));
-                */
+                // Logic để parse và load item sẽ được hoàn thiện sau khi đồng bộ entity
             }
         } catch (Exception e) {
              System.err.println("Could not fetch initial items: " + e.getMessage());

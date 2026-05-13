@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.AuctionController"
+            prefHeight="600" prefWidth="900" style="-fx-background-color: #f4f4f9;" stylesheets="@welcome-style.css">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <!-- Header: Tiêu đề và nút cho Seller -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 0 0 20 0;">
+            <Label text="Live Auctions" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+            <Region HBox.hgrow="ALWAYS"/> <!-- Đây là một cái đệm để đẩy nút sang phải -->
+            <Button fx:id="createNewItemButton" text="+ Create New Item" onAction="#handleCreateNewItem" styleClass="btn-filled" visible="false" managed="false"/>
+        </HBox>
+    </top>
+
+    <!-- Center: Bảng danh sách sản phẩm -->
+    <center>
+        <TableView fx:id="itemTable">
+            <columns>
+                <TableColumn fx:id="nameColumn" text="Item Name" prefWidth="250"/>
+                <TableColumn fx:id="descriptionColumn" text="Description" prefWidth="300"/>
+                <TableColumn fx:id="priceColumn" text="Current Bid" prefWidth="120"/>
+                <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
+                <TableColumn fx:id="endTimeColumn" text="Ends In" prefWidth="120"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <!-- Bottom: Khu vực đặt giá và thông báo -->
+    <bottom>
+        <VBox spacing="15" style="-fx-padding: 20 0 0 0;">
+            <Separator/>
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Label text="Selected Item:" style="-fx-font-weight: bold;"/>
+                <Text fx:id="selectedItemText" text="No item selected" style="-fx-font-style: italic;"/>
+            </HBox>
+            <HBox spacing="15" alignment="BASELINE">
+                <TextField fx:id="bidAmountField" promptText="Enter your bid amount" prefWidth="200"/>
+                <Button text="Place Bid" onAction="#handlePlaceBid" styleClass="btn-filled"/>
+                <Label fx:id="bidMessageLabel" textFill="RED"/>
+            </HBox>
+            <ListView fx:id="notificationList" prefHeight="100" placeholder="No new notifications."/>
+        </VBox>
+    </bottom>
+
+</BorderPane>

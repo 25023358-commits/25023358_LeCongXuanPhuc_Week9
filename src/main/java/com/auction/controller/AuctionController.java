@@ -1,128 +1,132 @@
 package com.auction.controller;
 
 import com.auction.client.ClientConnection;
-import com.auction.entity.BidRequest;
 import com.auction.entity.Item;
-import com.auction.entity.AuctionObserver;
-import com.auction.entity.Message;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.auction.entity.User;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
-public class AuctionController implements AuctionObserver {
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-    @FXML private TableView<Item> itemTable;
-    @FXML private TableColumn<Item, String> nameColumn;
-    @FXML private TableColumn<Item, Number> startPriceColumn;
-    @FXML private TableColumn<Item, Number> highestBidColumn;
-    @FXML private TableColumn<Item, String> bidderColumn;
+public class AuctionController {
 
-    @FXML private TextField bidAmountField;
-    @FXML private ListView<String> notificationList;
+    @FXML
+    private Button createNewItemButton;
+    @FXML
+    private TableView<Item> itemTable;
+    @FXML
+    private TableColumn<Item, String> nameColumn;
+    @FXML
+    private TableColumn<Item, String> descriptionColumn;
+    @FXML
+    private TableColumn<Item, String> priceColumn;
+    @FXML
+    private TableColumn<Item, String> statusColumn;
+    @FXML
+    private TableColumn<Item, String> endTimeColumn;
+    @FXML
+    private Text selectedItemText;
+    @FXML
+    private TextField bidAmountField;
+    @FXML
+    private Label bidMessageLabel;
+    @FXML
+    private ListView<String> notificationList;
 
-    private ObservableList<Item> itemList = FXCollections.observableArrayList();
-    private String currentUserId = "GUEST_USER";
     private ClientConnection connection;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public void setClientConnection(ClientConnection connection) {
-        this.connection = connection;
-    }
+    private User currentUser;
 
     @FXML
     public void initialize() {
-        // Ánh xạ dữ liệu từ class Item vào các cột của TableView
+        // Cấu hình các cột của bảng
         nameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
-        startPriceColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getStartingPrice()));
-        highestBidColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getCurrentHighestBid()));
-        bidderColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getHighestBidderId()));
+        descriptionColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDescription()));
+        priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.format("$%.2f", cellData.getValue().getCurrentHighestBid())));
+        statusColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getStatus().name()));
+        endTimeColumn.setCellValueFactory(cellData -> {
+            LocalDateTime end = cellData.getValue().getEndTime();
+            String formatted;
+            if (end.isBefore(LocalDateTime.now())) {
+                formatted = "Finished";
+            } else {
+                Duration duration = Duration.between(LocalDateTime.now(), end);
+                long hours = duration.toHours();
+                long minutes = duration.toMinutesPart();
+                formatted = String.format("%d hours, %d mins", hours, minutes);
+            }
+            return new SimpleStringProperty(formatted);
+        });
 
-        itemTable.setItems(itemList);
-        
-        notificationList.getItems().add("Welcome to the Live Auction System!");
+        // Listener để cập nhật ô "Selected Item" khi người dùng click vào một dòng
+        itemTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                selectedItemText.setText(newSelection.getName());
+            } else {
+                selectedItemText.setText("No item selected");
+            }
+        });
     }
 
-    public void setCurrentUserId(String userId) {
-        this.currentUserId = userId;
+    public void setConnection(ClientConnection connection) {
+        this.connection = connection;
+    }
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        // Chỉ hiển thị nút "Create New Item" nếu người dùng là Seller
+        if (user != null && "SELLER".equals(user.getRole())) {
+            createNewItemButton.setVisible(true);
+            createNewItemButton.setManaged(true);
+        }
     }
 
     public void loadItems(ObservableList<Item> items) {
-        this.itemList = items;
-        itemTable.setItems(this.itemList);
-        
-        for (Item item : items) {
-            item.addObserver(this);
+        Platform.runLater(() -> itemTable.setItems(items));
+    }
+
+    @FXML
+    private void handleCreateNewItem() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/create-item.fxml"));
+            Parent root = loader.load();
+
+            // Lấy controller của màn hình tạo item và truyền thông tin cần thiết
+            CreateItemController controller = loader.getController();
+            // controller.setConnection(this.connection);
+            // controller.setCurrentSeller(this.currentUser);
+
+            Stage stage = new Stage();
+            stage.setTitle("Create New Auction Item");
+            stage.setScene(new Scene(root));
+            
+            // Dùng Modality.APPLICATION_MODAL để cửa sổ mới hiện lên phải được xử lý xong
+            // thì mới quay lại được cửa sổ chính, tránh việc mở nhiều cửa sổ.
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+
+            // Sau khi cửa sổ tạo item đóng, làm mới lại danh sách
+            // fetchItemsFromServer();
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @FXML
     private void handlePlaceBid() {
-        Item selectedItem = itemTable.getSelectionModel().getSelectedItem();
-        
-        if (selectedItem == null) {
-            showAlert(Alert.AlertType.WARNING, "Selection Error", "Please select an item to bid on!");
-            return;
-        }
-
-        try {
-            double amount = Double.parseDouble(bidAmountField.getText());
-
-            if (connection == null) {
-                showAlert(Alert.AlertType.ERROR, "Connection Error", "Not connected to server.");
-                return;
-            }
-
-            BidRequest bidReq = new BidRequest();
-            bidReq.setItemId(selectedItem.getId());
-            bidReq.setBidderId(currentUserId);
-            bidReq.setAmount(amount);
-
-            Message msg = new Message("BID", objectMapper.writeValueAsString(bidReq));
-            connection.sendMessage(msg);
-
-            Message response = connection.receiveMessage();
-            if ("BID_RESULT".equals(response.getType()) && "true".equals(response.getData())) {
-                bidAmountField.clear();
-                notificationList.getItems().add("Bid placed successfully for " + selectedItem.getName());
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Bid Failed", "Your bid was rejected by the server.");
-            }
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Input Error", "Please enter a valid number for the bid amount.");
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Network Error", "Could not send bid: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void update(String message) {
-        Platform.runLater(() -> {
-            notificationList.getItems().add(message);
-            notificationList.scrollTo(notificationList.getItems().size() - 1);
-            itemTable.refresh(); 
-        });
-    }
-
-    @Override
-    public void onAuctionEnd(String itemId, String winnerId, double finalPrice) {
-        Platform.runLater(() -> {
-            String endMessage = String.format("Auction for Item %s ended. Winner: %s at $%s", itemId, winnerId, finalPrice);
-            notificationList.getItems().add(endMessage);
-            notificationList.scrollTo(notificationList.getItems().size() - 1);
-            itemTable.refresh();
-        });
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+        // Logic đặt giá sẽ được thêm ở đây
+        bidMessageLabel.setText("Place Bid functionality is under construction.");
     }
 }
