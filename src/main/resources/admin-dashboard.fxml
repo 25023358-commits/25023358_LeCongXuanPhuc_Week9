@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="20" style="-fx-padding: 25; -fx-background-color: #F4F7F6;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.AdminDashboardController" stylesheets="@welcome-style.css">
+    
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <VBox>
+            <Label text="AuexGlobal Authority" style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #0D3A26;" />
+            <Label text="System-wide Monitoring & Control" style="-fx-text-fill: #7f8c8d; -fx-font-size: 13;" />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS" />
+        <HBox spacing="10">
+            <Button text="🔄 Refresh All" onAction="#handleRefreshAll" styleClass="btn-filled" style="-fx-background-color: #3498db;" />
+        </HBox>
+    </HBox>
+
+    <!-- STATS SUMMARY -->
+    <HBox spacing="15">
+        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" styleClass="stats-card-mini" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10;">
+            <Label text="TOTAL USERS" style="-fx-text-fill: #95a5a6; -fx-font-size: 11; -fx-font-weight: bold;" />
+            <Label fx:id="totalUsersLabel" text="0" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
+        </VBox>
+        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" styleClass="stats-card-mini" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10;">
+            <Label text="ACTIVE ITEMS" style="-fx-text-fill: #95a5a6; -fx-font-size: 11; -fx-font-weight: bold;" />
+            <Label fx:id="activeItemsLabel" text="0" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #27ae60;" />
+        </VBox>
+        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" styleClass="stats-card-mini" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10;">
+            <Label text="SYSTEM CASH" style="-fx-text-fill: #95a5a6; -fx-font-size: 11; -fx-font-weight: bold;" />
+            <Label fx:id="systemVolumeLabel" text="$0.00" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #2980b9;" />
+        </VBox>
+    </HBox>
+
+    <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <!-- LEFT: USER MANAGEMENT -->
+        <VBox spacing="15" prefWidth="480" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 5);">
+            <HBox alignment="CENTER_LEFT">
+                <Label text="👥 User Management" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
+                <Region HBox.hgrow="ALWAYS" />
+                <TextField fx:id="userSearchField" promptText="Filter users..." prefWidth="180" style="-fx-background-radius: 15;" />
+            </HBox>
+            <TableView fx:id="userTable" VBox.vgrow="ALWAYS" style="-fx-font-size: 12;">
+                <columns>
+                    <TableColumn fx:id="usernameColumn" text="User" prefWidth="120" />
+                    <TableColumn fx:id="roleColumn"     text="Role" prefWidth="80" />
+                    <TableColumn fx:id="balanceColumn"  text="Balance" prefWidth="100" />
+                    <TableColumn fx:id="actionColumn"   text="Action" prefWidth="120" />
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- RIGHT: GLOBAL ITEMS & LOGS -->
+        <VBox spacing="15" HBox.hgrow="ALWAYS">
+            <!-- GLOBAL ITEMS -->
+            <VBox spacing="10" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 5);">
+                <Label text="🔨 Global Auction Monitor" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
+                <TableView fx:id="itemTable" VBox.vgrow="ALWAYS" style="-fx-font-size: 12;">
+                    <columns>
+                        <TableColumn fx:id="itemNameColumn"   text="Item Name" prefWidth="150" />
+                        <TableColumn fx:id="itemStatusColumn" text="Status"    prefWidth="100" />
+                        <TableColumn fx:id="itemPriceColumn"  text="Current Price" prefWidth="110" />
+                        <TableColumn fx:id="itemActionColumn" text="Action"    prefWidth="100" />
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- SYSTEM LOGS -->
+            <VBox spacing="10" prefHeight="180" style="-fx-background-color: #0D3A26; -fx-padding: 15; -fx-background-radius: 15;">
+                <Label text="📜 Real-time System Audit" style="-fx-font-weight: bold; -fx-text-fill: #27ae60; -fx-font-size: 14;" />
+                <ListView fx:id="systemLogList" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-control-inner-background: #0D3A26; -fx-border-color: transparent;" stylesheets="@admin-log-style.css"/>
+            </VBox>
+        </VBox>
+    </HBox>
+</VBox>

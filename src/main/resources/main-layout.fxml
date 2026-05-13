@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<BorderPane prefHeight="700.0" prefWidth="1100.0" 
+            style="-fx-background-color: #0D3A26;" 
+            stylesheets="@welcome-style.css" 
+            xmlns="http://javafx.com/javafx/17" 
+            xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.auction.controller.MainLayoutController">
+    
+    <!-- SIDEBAR -->
+    <left>
+        <VBox alignment="TOP_CENTER" prefWidth="240.0" spacing="10.0" 
+              style="-fx-background-color: #0D3A26; -fx-padding: 30 15 30 15;" BorderPane.alignment="CENTER">
+            
+            <!-- Logo / Brand -->
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label style="-fx-font-size: 24px; -fx-text-fill: white; -fx-font-weight: bold;" text="AuexGlobal" />
+                <padding>
+                    <Insets bottom="30.0" left="10.0" />
+                </padding>
+            </HBox>
+
+            <Label maxWidth="1.7976931348623157E308" style="-fx-text-fill: #5E8973; -fx-font-size: 11px; -fx-font-weight: bold;" text="NAVIGATION">
+                <padding>
+                    <Insets bottom="10.0" left="10.0" />
+                </padding>
+            </Label>
+
+            <!-- Navigation Buttons -->
+            <Button fx:id="btnDashboard" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" 
+                    onAction="#showDashboard" styleClass="sidebar-btn, sidebar-btn-active" text="🏠 Dashboard">
+                <padding>
+                    <Insets bottom="12.0" left="15.0" top="12.0" />
+                </padding>
+            </Button>
+
+            <Button fx:id="btnMyItems" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" 
+                    onAction="#showMyItems" styleClass="sidebar-btn" text="📦 My Items" visible="false" managed="false">
+                <padding>
+                    <Insets bottom="12.0" left="15.0" top="12.0" />
+                </padding>
+            </Button>
+
+            <Button fx:id="btnAdminPanel" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" 
+                    onAction="#showAdminPanel" styleClass="sidebar-btn" text="🛡 Admin Panel" visible="false" managed="false">
+                <padding>
+                    <Insets bottom="12.0" left="15.0" top="12.0" />
+                </padding>
+            </Button>
+            
+            <!-- Spacer to push user profile to bottom -->
+            <VBox VBox.vgrow="ALWAYS" />
+
+            <!-- User Profile Area -->
+            <Label maxWidth="1.7976931348623157E308" style="-fx-text-fill: #5E8973; -fx-font-size: 11px; -fx-font-weight: bold;" text="USER ACCOUNT">
+                <padding>
+                    <Insets bottom="10.0" left="10.0" />
+                </padding>
+            </Label>
+            
+            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10;">
+                <Circle fill="#85c1e9" radius="16.0" />
+                <VBox alignment="CENTER_LEFT">
+                    <Label fx:id="userNameLabel" style="-fx-text-fill: white; -fx-font-weight: bold;" text="Username" />
+                    <Label fx:id="userRoleLabel" style="-fx-text-fill: #5E8973; -fx-font-size: 11px;" text="Role" />
+                </VBox>
+            </HBox>
+
+            <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" 
+                    onAction="#handleLogout" styleClass="sidebar-btn" text="🚪 Logout">
+                <padding>
+                    <Insets bottom="12.0" left="15.0" top="12.0" />
+                </padding>
+            </Button>
+
+        </VBox>
+    </left>
+    
+    <!-- MAIN CONTENT AREA -->
+    <center>
+        <StackPane style="-fx-background-color: #0D3A26; -fx-padding: 10 10 10 0;">
+            <StackPane fx:id="contentArea" style="-fx-background-color: #F4F7F6; -fx-background-radius: 20;">
+                <!-- Nội dung các màn hình (auction.fxml, my-items.fxml) sẽ được nhét vào đây -->
+            </StackPane>
+        </StackPane>
+    </center>
+
+</BorderPane>
