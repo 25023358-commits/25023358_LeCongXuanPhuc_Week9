@@ -107,6 +107,23 @@ public class ItemDAO {
         }
         return list;
     }
+    // =========================================================
+    // UPDATE — Cập nhật giá cao nhất và người đặt giá
+    // =========================================================
+    public void updateCurrentBid(String itemId, double bidAmount) throws SQLException {
+        String sql = "UPDATE items SET current_bid = ? WHERE id = ?";
+
+        try (PreparedStatement stmt = DBHelper.getConnection().prepareStatement(sql)) {
+            stmt.setDouble(1, bidAmount);
+            stmt.setString(2, itemId);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Updating item failed, no rows affected.");
+            }
+        }
+    }
+
     
     // =========================================================
     // mapRowToItem — chuyển ResultSet → Item object

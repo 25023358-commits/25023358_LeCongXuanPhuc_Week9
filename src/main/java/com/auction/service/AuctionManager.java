@@ -87,6 +87,7 @@ public class AuctionManager {
     // === CORE METHOD: Xử lý đấu giá ===
     public boolean placeBid(String itemId, String bidderId, double bidAmount) {
         return biddingService.placeBid(itemId, bidderId, bidAmount);
+
     }
 
     // === Advanced: Thống kê ===

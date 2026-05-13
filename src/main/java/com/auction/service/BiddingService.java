@@ -1,5 +1,8 @@
 package com.auction.service;
 
+import java.sql.SQLException;
+import com.auction.dao.BidTransactionDAO;
+import com.auction.dao.ItemDAO;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -15,6 +18,8 @@ public class BiddingService {
     private NotificationService notificationService;
     private AutoBidder autoBidder;
     private List<BidTransaction> transactionHistory;
+    private BidTransactionDAO bidDAO = new BidTransactionDAO();
+    private ItemDAO itemDAO = new ItemDAO();
 
     public BiddingService(Map<String, Item> activeAuctions, Map<String, Bidder> bidders,
                           BiddingStrategy strategy, AntiSniping antiSniping,
@@ -67,12 +72,30 @@ public class BiddingService {
                         autoBidder.onNewBid(itemId, bidderId, bidAmount);
                     }
 
-                    // Đánh dấu các transaction cũ không còn thắng
-                    markPreviousTransactionsAsLost(itemId);
+                    // 1. Mark bid cũ LOST trong DB trước
+                    bidDAO.markAllLost(itemId);
 
-                    // Lưu transaction
+                    // 2. Tạo transaction mới
                     BidTransaction tx = new BidTransaction(itemId, bidderId, bidAmount);
                     tx.markAsWinning();
+
+                    // 3. Lưu xuống DB
+                    try {
+                        bidDAO.saveBid(tx);
+                    } catch (Exception e) {
+                        System.out.println("DB save bid failed: " + e.getMessage());
+                    }
+
+
+                    // 4. Cập nhật giá item trong DB
+                    try {
+                        itemDAO.updateCurrentBid(itemId, bidAmount);
+                    } catch (java.sql.SQLException e) {
+                        System.out.println("⚠️ DB update item failed: " + e.getMessage());
+                    }
+
+                    // 5. Lưu vào RAM như cũ
+                    markPreviousTransactionsAsLost(itemId);
                     transactionHistory.add(tx);
 
                     // Notify observers
