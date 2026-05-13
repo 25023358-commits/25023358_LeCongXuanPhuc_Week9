@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.effect.DropShadow?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.RegisterController"
+           prefHeight="600" prefWidth="900" stylesheets="@welcome-style.css" styleClass="left-pane">
+
+    <Circle radius="200" styleClass="abstract-circle-1" StackPane.alignment="TOP_LEFT" translateX="-50" translateY="-50"/>
+    <Circle radius="120" styleClass="abstract-circle-2" StackPane.alignment="BOTTOM_RIGHT" translateX="50" translateY="50"/>
+
+    <HBox maxWidth="750" maxHeight="500" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 10);">
+
+        <VBox prefWidth="300" alignment="CENTER" spacing="15" style="-fx-background-color: linear-gradient(to bottom, #2980b9, #6dd5ed); -fx-background-radius: 15 0 0 15; -fx-padding: 30;">
+            <Text text="Join Us" style="-fx-fill: white; -fx-font-size: 32px; -fx-font-weight: bold; -fx-text-alignment: CENTER;" wrappingWidth="240"/>
+            <Text text="Start bidding on exclusive items today." style="-fx-fill: white; -fx-font-size: 14px; -fx-text-alignment: CENTER;" wrappingWidth="200"/>
+        </VBox>
+
+        <VBox prefWidth="450" alignment="CENTER" spacing="15" style="-fx-padding: 40;">
+            <Label text="Get Started" styleClass="form-title" style="-fx-padding: 0 0 10 0;"/>
+
+            <VBox spacing="5" maxWidth="300">
+                <Label text="Username" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12px;"/>
+                <TextField fx:id="usernameField" promptText="Enter your username" style="-fx-background-radius: 8; -fx-padding: 10;"/>
+            </VBox>
+
+            <VBox spacing="5" maxWidth="300">
+                <Label text="Password" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12px;"/>
+                <StackPane>
+                    <PasswordField fx:id="passwordField" promptText="Create a strong password" style="-fx-background-radius: 8; -fx-padding: 10;"/>
+                    <TextField fx:id="visiblePasswordField" managed="false" visible="false" promptText="Create a strong password" style="-fx-background-radius: 8; -fx-padding: 10;"/>
+                </StackPane>
+            </VBox>
+
+            <VBox spacing="5" maxWidth="300">
+                <Label text="Confirm Password" style="-fx-text-fill: #7f8c8d; -fx-font-size: 12px;"/>
+                 <StackPane>
+                    <PasswordField fx:id="confirmPasswordField" promptText="Repeat your password" style="-fx-background-radius: 8; -fx-padding: 10;"/>
+                    <TextField fx:id="visibleConfirmPasswordField" managed="false" visible="false" promptText="Repeat your password" style="-fx-background-radius: 8; -fx-padding: 10;"/>
+                </StackPane>
+            </VBox>
+
+            <HBox alignment="CENTER_RIGHT" maxWidth="300">
+                 <CheckBox fx:id="showPasswordCheckBox" text="Show Passwords" styleClass="check-box"/>
+            </HBox>
+
+            <HBox spacing="20" alignment="CENTER" maxWidth="300" style="-fx-padding: 10 0;">
+                <Label text="Role:" style="-fx-text-fill: #7f8c8d;"/>
+                <RadioButton fx:id="bidderRadioButton" text="Bidder"/>
+                <RadioButton fx:id="sellerRadioButton" text="Seller"/>
+            </HBox>
+
+            <Button fx:id="registerButton" text="Sign Up" onAction="#handleRegister" styleClass="btn-filled" prefWidth="300" prefHeight="40"/>
+
+            <Label fx:id="messageLabel" textFill="RED" wrapText="true" style="-fx-font-size: 12px;"/>
+
+            <HBox alignment="CENTER">
+                <Label text="Already have an account? " style="-fx-text-fill: #7f8c8d;"/>
+                <Hyperlink text="Sign In" onAction="#switchToLogin" style="-fx-text-fill: #2980b9; -fx-font-weight: bold; -fx-padding: 0;"/>
+            </HBox>
+        </VBox>
+    </HBox>
+</StackPane>

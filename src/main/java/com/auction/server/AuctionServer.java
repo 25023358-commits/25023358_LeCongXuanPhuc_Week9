@@ -10,6 +10,7 @@ import com.auction.entity.Message;
 import com.auction.entity.LoginRequest;
 import com.auction.entity.User;
 import com.auction.entity.BidRequest;
+import com.auction.entity.RegisterRequest;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -22,13 +23,13 @@ public class AuctionServer {
     private ExecutorService executor = Executors.newCachedThreadPool();
     private AuctionManager auctionManager = new AuctionManager();
     private ObjectMapper objectMapper = new ObjectMapper();
+    private AuthService authService = new AuthService(); // Khởi tạo 1 lần, tái sử dụng
 
     public void start() {
         DBHelper.initializeDatabase();
-        // Load data from DB if needed
+        System.out.println("Server started on port " + PORT);
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("Server started on port " + PORT);
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 executor.submit(new ClientHandler(clientSocket));
@@ -62,7 +63,7 @@ public class AuctionServer {
                     handleMessage(msg);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                System.out.println("Client disconnected: " + socket.getRemoteSocketAddress());
             } finally {
                 try {
                     socket.close();
@@ -73,44 +74,69 @@ public class AuctionServer {
         }
 
         private void handleMessage(Message msg) throws Exception {
-            AuthService authService = new AuthService();
-            ItemDAO itemDAO = new ItemDAO();
-            BidTransactionDAO bidDAO = new BidTransactionDAO();
-
             switch (msg.getType()) {
                 case "LOGIN":
-                    // data: {"username":"user","password":"pass"}
-                    try {
-                        LoginRequest req = objectMapper.readValue(msg.getData(), LoginRequest.class);
-                        User user = authService.login(req.getUsername(), req.getPassword());
-                        if (user != null) {
-                            out.println(objectMapper.writeValueAsString(new Message("LOGIN_SUCCESS", objectMapper.writeValueAsString(user))));
-                        } else {
-                            out.println(objectMapper.writeValueAsString(new Message("LOGIN_FAILED", "Invalid credentials")));
-                        }
-                    } catch (Exception e) {
-                        out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
-                    }
+                    handleLogin(msg);
                     break;
+                case "REGISTER":
+                    handleRegister(msg);
+                    break;
+                case "GET_ITEMS":
                 case "LIST_ITEMS":
-                    try {
-                        var items = itemDAO.getAllItems();
-                        out.println(objectMapper.writeValueAsString(new Message("ITEMS", objectMapper.writeValueAsString(items))));
-                    } catch (Exception e) {
-                        out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
-                    }
+                    handleListItems();
                     break;
                 case "BID":
-                    // data: {"itemId":"I1","bidderId":"B1","amount":1100.0}
-                    try {
-                        BidRequest req = objectMapper.readValue(msg.getData(), BidRequest.class);
-                        boolean success = auctionManager.placeBid(req.getItemId(), req.getBidderId(), req.getAmount());
-                        out.println(objectMapper.writeValueAsString(new Message("BID_RESULT", String.valueOf(success))));
-                    } catch (Exception e) {
-                        out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
-                    }
+                    handleBid(msg);
                     break;
                 // Add more cases
+            }
+        }
+
+        private void handleLogin(Message msg) throws IOException {
+            try {
+                LoginRequest req = objectMapper.readValue(msg.getData(), LoginRequest.class);
+                User user = authService.login(req.getUsername(), req.getPassword());
+                if (user != null) {
+                    out.println(objectMapper.writeValueAsString(new Message("LOGIN_SUCCESS", objectMapper.writeValueAsString(user))));
+                } else {
+                    out.println(objectMapper.writeValueAsString(new Message("LOGIN_FAILED", "Invalid credentials")));
+                }
+            } catch (Exception e) {
+                out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
+            }
+        }
+
+        private void handleRegister(Message msg) throws IOException {
+            try {
+                RegisterRequest req = objectMapper.readValue(msg.getData(), RegisterRequest.class);
+                boolean success = authService.register(req.getUsername(), req.getEmail(), req.getPassword(), req.getRole());
+                if (success) {
+                    out.println(objectMapper.writeValueAsString(new Message("REGISTER_SUCCESS", "Account created successfully.")));
+                } else {
+                    out.println(objectMapper.writeValueAsString(new Message("REGISTER_FAILED", "Username already exists.")));
+                }
+            } catch (Exception e) {
+                out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
+            }
+        }
+
+        private void handleListItems() throws IOException {
+            ItemDAO itemDAO = new ItemDAO();
+            try {
+                var items = itemDAO.findAll(); // Sử dụng hàm findAll() từ ItemDAO
+                out.println(objectMapper.writeValueAsString(new Message("ITEM_LIST", objectMapper.writeValueAsString(items))));
+            } catch (Exception e) {
+                out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
+            }
+        }
+
+        private void handleBid(Message msg) throws IOException {
+            try {
+                BidRequest req = objectMapper.readValue(msg.getData(), BidRequest.class);
+                boolean success = auctionManager.placeBid(req.getItemId(), req.getBidderId(), req.getAmount());
+                out.println(objectMapper.writeValueAsString(new Message("BID_RESULT", String.valueOf(success))));
+            } catch (Exception e) {
+                out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
             }
         }
     }

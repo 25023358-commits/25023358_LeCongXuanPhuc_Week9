@@ -1,16 +1,46 @@
 package com.auction.service;
 
-import com.auction.entity.*;
+import com.auction.entity.Art;
+import com.auction.entity.Electronics;
+import com.auction.entity.Item;
+
+import java.time.LocalDateTime;
 
 public class ItemFactory {
-    public static Item createItem(String type, String id, String name, double price, Object... extraAttrs) {
+
+    /**
+     * Tạo một đối tượng Item (Art hoặc Electronics) với đầy đủ các thuộc tính.
+     *
+     * @param type          Loại sản phẩm ("electronics" hoặc "art")
+     * @param id            ID của sản phẩm
+     * @param name          Tên sản phẩm
+     * @param description   Mô tả chi tiết
+     * @param startingPrice Giá khởi điểm
+     * @param startTime     Thời gian bắt đầu đấu giá
+     * @param endTime       Thời gian kết thúc đấu giá
+     * @param extraAttrs    Thuộc tính bổ sung (Integer cho warranty, String cho artist)
+     * @return Một đối tượng Item đã được khởi tạo.
+     */
+    public static Item createItem(String type, String id, String name, String description,
+                                  double startingPrice, LocalDateTime startTime, LocalDateTime endTime,
+                                  Object... extraAttrs) {
         switch (type.toLowerCase()) {
             case "electronics":
-                return new Electronics(id, name, price, (Integer) extraAttrs[0]);
+                if (extraAttrs.length == 0 || !(extraAttrs[0] instanceof Integer)) {
+                    throw new IllegalArgumentException("Electronics item requires warranty months (Integer).");
+                }
+                int warrantyMonths = (Integer) extraAttrs[0];
+                return new Electronics(id, name, description, startingPrice, startTime, endTime, warrantyMonths);
+
             case "art":
-                return new Art(id, name, price, (String) extraAttrs[0]);
+                if (extraAttrs.length == 0 || !(extraAttrs[0] instanceof String)) {
+                    throw new IllegalArgumentException("Art item requires artist name (String).");
+                }
+                String artistName = (String) extraAttrs[0];
+                return new Art(id, name, description, startingPrice, startTime, endTime, artistName);
+
             default:
-                throw new IllegalArgumentException("Unknown item type");
+                throw new IllegalArgumentException("Unknown item type: " + type);
         }
     }
 }

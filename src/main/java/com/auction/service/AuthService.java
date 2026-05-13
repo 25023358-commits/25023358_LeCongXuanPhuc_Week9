@@ -1,22 +1,75 @@
 package com.auction.service;
 
 import com.auction.dao.UserDAO;
+import com.auction.entity.Admin;
+import com.auction.entity.Bidder;
+import com.auction.entity.Seller;
 import com.auction.entity.User;
+import org.mindrot.jbcrypt.BCrypt;
 
+import java.sql.SQLException;
+import java.util.UUID;
 
 public class AuthService {
-    private UserDAO userDAO = new UserDAO();
+    private final UserDAO userDAO = new UserDAO();
 
+    /**
+     * Xác thực đăng nhập bằng cách kiểm tra mật khẩu đã hash bằng BCrypt.
+     */
     public User login(String username, String password) {
-        User user = userDAO.getUserByUsername(username);
-        if (user != null && "password".equals(password)) { // Simple check, in real hash
-            return user;
+        try {
+            UserDAO.UserRecord record = userDAO.findByUsername(username);
+            
+            if (record != null) {
+                // Kiểm tra mật khẩu người dùng nhập vào với mã hash lưu trong DB
+                if (BCrypt.checkpw(password, record.hashedPassword)) {
+                    // Trả về Object User tương ứng với role
+                    switch (record.role) {
+                        case "BIDDER":
+                            return new Bidder(record.id, record.username, record.balance);
+                        case "SELLER":
+                            return new Seller(record.id, record.username);
+                        case "ADMIN":
+                            return new Admin(record.id, record.username);
+                        default:
+                            return null;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Database error during login: " + e.getMessage());
         }
         return null;
     }
 
-    public boolean register(User user) {
-        userDAO.saveUser(user);
-        return true;
+    /**
+     * Đăng ký người dùng mới. Hash mật khẩu trước khi lưu.
+     */
+    public boolean register(String username, String email, String password, String role) {
+        try {
+            // Kiểm tra xem username đã tồn tại chưa
+            if (userDAO.findByUsername(username) != null) {
+                System.out.println("Username already exists.");
+                return false;
+            }
+
+            // Tạo ID ngẫu nhiên cho user mới (Sửa lỗi: dùng randomUUID() thay vì randomDefault())
+            String id = "USR_" + UUID.randomUUID().toString().substring(0, 8);
+            
+            // Hash mật khẩu bằng thư viện BCrypt
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            
+            // Khởi tạo số dư tài khoản (chỉ Bidder mới có tiền khởi điểm)
+            double balance = "BIDDER".equals(role) ? 1000.0 : 0.0;
+
+            // Lưu vào database thông qua DAO
+            userDAO.insert(id, username, email, hashedPassword, role, balance);
+            
+            return true;
+            
+        } catch (SQLException e) {
+            System.err.println("Database error during registration: " + e.getMessage());
+            return false;
+        }
     }
 }

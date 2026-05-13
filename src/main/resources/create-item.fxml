@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.CreateItemController"
+      spacing="20" style="-fx-padding: 30; -fx-background-color: #f4f4f9;">
+
+    <Label text="Create a New Auction Item" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+    <GridPane hgap="15" vgap="15">
+        <columnConstraints>
+            <ColumnConstraints hgrow="NEVER" minWidth="120"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <!-- Tên sản phẩm -->
+        <Label text="Item Name:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField" promptText="e.g., Macbook Pro M3" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <!-- Mô tả -->
+        <Label text="Description:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextArea fx:id="descriptionArea" promptText="Provide a detailed description of the item" prefHeight="100" wrapText="true" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <!-- Giá khởi điểm -->
+        <Label text="Starting Price ($):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="priceField" promptText="e.g., 1500.0" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <!-- Thời gian bắt đầu -->
+        <Label text="Start Time:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="startDatePicker" promptText="Auction start date" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <!-- Thời gian kết thúc -->
+        <Label text="End Time:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="endDatePicker" promptText="Auction end date" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <!-- Loại sản phẩm -->
+        <Label text="Category:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="categoryComboBox" promptText="Select a category" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+        <!-- Các trường đặc thù (sẽ hiện/ẩn bằng code) -->
+        <VBox fx:id="electronicsPane" spacing="15" managed="false" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="1">
+            <Label text="Warranty (months):" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="warrantyField" promptText="e.g., 12"/>
+        </VBox>
+
+        <VBox fx:id="artPane" spacing="15" managed="false" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="1">
+            <Label text="Artist Name:" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="artistField" promptText="e.g., Leonardo da Vinci"/>
+        </VBox>
+
+        <columnConstraints>
+            <ColumnConstraints/>
+            <ColumnConstraints/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+        </rowConstraints>
+    </GridPane>
+
+    <HBox alignment="CENTER_RIGHT" spacing="15" style="-fx-padding: 20 0 0 0;">
+        <Label fx:id="messageLabel" textFill="RED"/>
+        <Button text="Cancel" onAction="#handleCancel"/>
+        <Button text="Create Item" onAction="#handleCreateItem" styleClass="btn-filled"/>
+    </HBox>
+
+</VBox>
