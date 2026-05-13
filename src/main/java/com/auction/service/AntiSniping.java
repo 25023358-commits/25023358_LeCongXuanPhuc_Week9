@@ -55,8 +55,15 @@ public class AntiSniping {
 
     public long getRemainingSeconds(String itemId) {
         Long endTime = auctionEndTime.get(itemId);
-        if (endTime == null) return 0;
+        if (endTime == null) return -1; // Return -1 to indicate untracked
         return Math.max(0, (endTime - System.currentTimeMillis()) / 1000);
+    }
+
+    // Đồng bộ thời gian kết thúc từ thực tế của Item
+    public void syncItem(String itemId, java.time.LocalDateTime endTime) {
+        if (endTime == null) return;
+        long endTimeMillis = endTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+        auctionEndTime.put(itemId, endTimeMillis);
     }
 
     // === THÊM METHOD NÀY === với mục đích kiểm tra xem còn đấu giá không

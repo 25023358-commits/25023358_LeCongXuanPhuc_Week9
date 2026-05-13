@@ -46,18 +46,27 @@ public class BiddingService {
             return false;
         }
 
-        // Kiểm tra chống sniping
+        // Đảm bảo AntiSniping đã biết về item này
+        if (antiSniping.getRemainingSeconds(itemId) == -1) {
+            antiSniping.syncItem(itemId, item.getEndTime());
+        }
+
+        // Kiểm tra chống sniping và gia hạn nếu cần
         if (!antiSniping.checkAndExtend(itemId)) {
             System.out.println("Auction ended for " + itemId + "! Cannot bid.");
             return false;
         } else {
-            // Cập nhật lại endTime của item nếu bị gia hạn
+            // Cập nhật lại endTime của item nếu bị gia hạn thực sự
             long rem = antiSniping.getRemainingSeconds(itemId);
-            LocalDateTime newEnd = LocalDateTime.now().plusSeconds(rem);
-            item.setEndTime(newEnd);
-            try {
-                itemDAO.save(item); // Lưu cập nhật thời gian vào DB
-            } catch (SQLException ignored) {}
+            java.time.LocalDateTime newEnd = java.time.LocalDateTime.now().plusSeconds(rem);
+            
+            // Chỉ lưu vào DB nếu thời gian mới xa hơn thời gian cũ đáng kể (tránh sai số mili giây)
+            if (newEnd.isAfter(item.getEndTime().plusSeconds(1))) {
+                item.setEndTime(newEnd);
+                try {
+                    itemDAO.save(item); // Lưu cập nhật thời gian vào DB
+                } catch (SQLException ignored) {}
+            }
         }
 
         synchronized (item) {
@@ -110,9 +119,9 @@ public class BiddingService {
                     }
 
 
-                    // 4. Cập nhật giá item trong DB
+                    // 4. Cập nhật giá item và bidder trong DB
                     try {
-                        itemDAO.updateCurrentBid(itemId, bidAmount);
+                        itemDAO.updateCurrentBid(itemId, bidAmount, bidderId);
                     } catch (java.sql.SQLException e) {
                         System.out.println("⚠️ DB update item failed: " + e.getMessage());
                     }

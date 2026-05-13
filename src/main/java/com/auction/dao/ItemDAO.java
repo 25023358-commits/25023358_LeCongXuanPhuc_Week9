@@ -124,12 +124,13 @@ public class ItemDAO {
     // =========================================================
     // UPDATE — Cập nhật giá cao nhất và người đặt giá
     // =========================================================
-    public void updateCurrentBid(String itemId, double bidAmount) throws SQLException {
-        String sql = "UPDATE items SET current_bid = ? WHERE id = ?";
+    public void updateCurrentBid(String itemId, double bidAmount, String bidderId) throws SQLException {
+        String sql = "UPDATE items SET current_bid = ?, highest_bidder_id = ? WHERE id = ?";
 
         try (PreparedStatement stmt = DBHelper.getConnection().prepareStatement(sql)) {
             stmt.setDouble(1, bidAmount);
-            stmt.setString(2, itemId);
+            stmt.setString(2, bidderId);
+            stmt.setString(3, itemId);
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {

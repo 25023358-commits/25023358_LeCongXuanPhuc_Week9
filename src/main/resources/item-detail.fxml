@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.controller.ItemDetailController"
+      spacing="0" style="-fx-background-color: #f4f4f9;">
+
+    <!-- Header -->
+    <HBox style="-fx-background-color: #2c3e50; -fx-padding: 16 20 16 20;" alignment="CENTER_LEFT">
+        <Label fx:id="itemNameLabel" text="Item Name"
+               style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="statusLabel" text="OPEN"
+               style="-fx-background-color: #27ae60; -fx-text-fill: white;
+                      -fx-padding: 4 10; -fx-background-radius: 12; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- Body -->
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+        <VBox spacing="12" style="-fx-padding: 20;">
+
+            <!-- Category & Seller -->
+            <HBox spacing="20">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Category" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                    <Label fx:id="categoryLabel" text="—" style="-fx-font-weight: bold;"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Seller" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                    <Label fx:id="sellerLabel" text="—" style="-fx-font-weight: bold;"/>
+                </VBox>
+            </HBox>
+
+            <Separator/>
+
+            <!-- Description -->
+            <VBox spacing="4">
+                <Label text="Description" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                <Label fx:id="descriptionLabel" text="—" wrapText="true"
+                       style="-fx-font-size: 13px;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Price info -->
+            <HBox spacing="20">
+                <VBox spacing="4" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color: white; -fx-padding: 12; -fx-background-radius: 8;">
+                    <Label text="Starting Price" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                    <Label fx:id="startingPriceLabel" text="$0.00"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color: white; -fx-padding: 12; -fx-background-radius: 8;">
+                    <Label text="Current Highest Bid" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                    <Label fx:id="currentBidLabel" text="$0.00"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e74c3c;"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color: white; -fx-padding: 12; -fx-background-radius: 8;">
+                    <Label text="Total Bids" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                    <Label fx:id="bidCountLabel" text="0"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #3498db;"/>
+                </VBox>
+            </HBox>
+
+            <!-- Current leader -->
+            <VBox spacing="4" style="-fx-background-color: #eaf4fb; -fx-padding: 10; -fx-background-radius: 8;">
+                <Label text="Current Leader" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                <Label fx:id="currentLeaderLabel" text="—"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980b9;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Timing -->
+            <HBox spacing="20">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Start Time" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                    <Label fx:id="startTimeLabel" text="—"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="End Time" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
+                    <Label fx:id="endTimeLabel" text="—"/>
+                </VBox>
+            </HBox>
+
+            <!-- Extra info (warranty / artist) -->
+            <Label fx:id="extraInfoLabel" text="" style="-fx-font-style: italic; -fx-text-fill: #555;"/>
+
+        </VBox>
+    </ScrollPane>
+
+    <!-- Footer -->
+    <HBox alignment="CENTER_RIGHT" style="-fx-padding: 12 20; -fx-background-color: #ecf0f1;">
+        <Button text="Close" onAction="#handleClose"
+                style="-fx-background-color: #2c3e50; -fx-text-fill: white;
+                       -fx-padding: 8 24; -fx-background-radius: 6; -fx-cursor: hand;"/>
+    </HBox>
+
+</VBox>
