@@ -3,6 +3,7 @@ package com.auction.service;
 import java.sql.SQLException;
 import com.auction.dao.BidTransactionDAO;
 import com.auction.dao.ItemDAO;
+import com.auction.dao.UserDAO;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ public class BiddingService {
     private List<BidTransaction> transactionHistory;
     private BidTransactionDAO bidDAO = new BidTransactionDAO();
     private ItemDAO itemDAO = new ItemDAO();
+    private UserDAO userDAO = new UserDAO();
 
     public BiddingService(Map<String, Item> activeAuctions, Map<String, Bidder> bidders,
                           BiddingStrategy strategy, AntiSniping antiSniping,
@@ -59,7 +61,19 @@ public class BiddingService {
         }
 
         synchronized (item) {
+            // Tìm bidder trong RAM trước, fallback xuống DB nếu không có
             Bidder bidder = bidders.get(bidderId);
+            if (bidder == null) {
+                try {
+                    UserDAO.UserRecord rec = userDAO.findById(bidderId);
+                    if (rec != null && "BIDDER".equals(rec.role)) {
+                        bidder = new Bidder(rec.id, rec.username, rec.balance);
+                        bidders.put(bidderId, bidder); // cache vào RAM
+                    }
+                } catch (SQLException e) {
+                    System.out.println("DB lookup bidder failed: " + e.getMessage());
+                }
+            }
             if (bidder == null || bidder.getBalance() < bidAmount) {
                 System.out.println("Bid FAILED: Insufficient balance or bidder not found.");
                 return false;

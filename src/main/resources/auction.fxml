@@ -6,68 +6,116 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.chart.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.AuctionController"
-            prefHeight="600" prefWidth="900" style="-fx-background-color: #f4f4f9;" stylesheets="@welcome-style.css">
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.controller.AuctionController"
+            prefHeight="640" prefWidth="980"
+            style="-fx-background-color: #f4f4f9;" stylesheets="@welcome-style.css">
     <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
+        <Insets top="18" right="18" bottom="18" left="18"/>
     </padding>
 
-    <!-- Header: Tiêu đề và nút cho Seller -->
+    <!-- ===== HEADER ===== -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 0 0 20 0;">
-            <Label text="Live Auctions" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-            <Region HBox.hgrow="ALWAYS"/> <!-- Đây là một cái đệm để đẩy nút sang phải -->
-            <Button fx:id="createNewItemButton" text="+ Create New Item" onAction="#handleCreateNewItem" styleClass="btn-filled" visible="false" managed="false"/>
-            <Button fx:id="myItemsButton" text="My Items" onAction="#handleShowMyItems" styleClass="btn-outline" visible="false" managed="false"/>
-            <Button text="Logout" onAction="#handleLogout" styleClass="btn-outline" style="-fx-text-fill: #e74c3c; -fx-border-color: #e74c3c;"/>
+        <HBox alignment="CENTER_LEFT" spacing="16" style="-fx-padding: 0 0 16 0;">
+            <Label text="🏷 Live Auctions"
+                   style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="userBalanceLabel" text=""
+                   style="-fx-font-size: 13px; -fx-text-fill: #27ae60; -fx-font-weight: bold;"/>
+            <Button fx:id="createNewItemButton" text="＋ Create Item"
+                    onAction="#handleCreateNewItem" styleClass="btn-filled"
+                    visible="false" managed="false"/>
+            <Button fx:id="myItemsButton" text="My Items"
+                    onAction="#handleShowMyItems" styleClass="btn-outline"
+                    visible="false" managed="false"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="btn-outline"
+                    style="-fx-text-fill: #e74c3c; -fx-border-color: #e74c3c;"/>
         </HBox>
     </top>
 
+    <!-- ===== CENTER: Table + Side Panel ===== -->
     <center>
-        <HBox spacing="10">
+        <HBox spacing="12">
+
+            <!-- Item Table -->
             <TableView fx:id="itemTable" HBox.hgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="nameColumn" text="Item Name" prefWidth="200"/>
-                    <TableColumn fx:id="descriptionColumn" text="Description" prefWidth="200"/>
-                    <TableColumn fx:id="priceColumn" text="Current Bid" prefWidth="100"/>
-                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="80"/>
-                    <TableColumn fx:id="endTimeColumn" text="Ends In" prefWidth="120"/>
+                    <TableColumn fx:id="nameColumn"        text="Item Name"    prefWidth="190"/>
+                    <TableColumn fx:id="descriptionColumn" text="Description"  prefWidth="180"/>
+                    <TableColumn fx:id="priceColumn"       text="Current Bid"  prefWidth="100"/>
+                    <TableColumn fx:id="statusColumn"      text="Status"       prefWidth="80"/>
+                    <TableColumn fx:id="endTimeColumn"     text="Ends In"      prefWidth="100"/>
                 </columns>
+                <placeholder>
+                    <Label text="No auction items available." style="-fx-text-fill: #aaa;"/>
+                </placeholder>
             </TableView>
-            <VBox fx:id="chartContainer" prefWidth="300" spacing="10" style="-fx-background-color: white; -fx-padding: 10;">
-                <Label text="Price History" style="-fx-font-weight: bold;"/>
-                <LineChart fx:id="priceChart" prefHeight="250" legendVisible="false">
+
+            <!-- Side Panel: Chart + Bid History -->
+            <VBox prefWidth="300" spacing="10"
+                  style="-fx-background-color: white; -fx-padding: 12;
+                         -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, #ccc, 4, 0, 0, 2);">
+                <Label text="Price History" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                <LineChart fx:id="priceChart" prefHeight="220" legendVisible="false"
+                           animated="false">
                     <xAxis>
-                        <CategoryAxis label="Time" />
+                        <CategoryAxis label="Time"/>
                     </xAxis>
                     <yAxis>
-                        <NumberAxis label="Price ($)" />
+                        <NumberAxis label="Price ($)"/>
                     </yAxis>
                 </LineChart>
-                <Label text="Bid History" style="-fx-font-weight: bold;"/>
-                <ListView fx:id="bidHistoryList" prefHeight="150"/>
+                <Separator/>
+                <Label text="Bid History" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                <ListView fx:id="bidHistoryList" prefHeight="160">
+                    <placeholder>
+                        <Label text="Select an item to view bids." style="-fx-text-fill: #aaa;"/>
+                    </placeholder>
+                </ListView>
+                <Button fx:id="viewDetailsButton" text="🔍 View Full Details"
+                        onAction="#handleViewDetails"
+                        maxWidth="Infinity"
+                        style="-fx-background-color: #3498db; -fx-text-fill: white;
+                               -fx-padding: 7 0; -fx-background-radius: 6; -fx-cursor: hand;"/>
             </VBox>
+
         </HBox>
     </center>
 
-    <!-- Bottom: Khu vực đặt giá và thông báo -->
+    <!-- ===== BOTTOM: Bidding Controls + Notifications ===== -->
     <bottom>
-        <VBox spacing="15" style="-fx-padding: 20 0 0 0;">
+        <VBox spacing="12" style="-fx-padding: 16 0 0 0;">
             <Separator/>
-            <HBox alignment="CENTER_LEFT" spacing="15">
-                <Label text="Selected Item:" style="-fx-font-weight: bold;"/>
-                <Text fx:id="selectedItemText" text="No item selected" style="-fx-font-style: italic;"/>
+
+            <!-- Selected item info -->
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Selected:" style="-fx-font-weight: bold; -fx-text-fill: #555;"/>
+                <Text fx:id="selectedItemText" text="No item selected"
+                      style="-fx-font-style: italic; -fx-fill: #777;"/>
             </HBox>
-            <HBox spacing="15" alignment="CENTER_LEFT">
-                <TextField fx:id="bidAmountField" promptText="Enter your bid amount" prefWidth="200"/>
+
+            <!-- Manual bid controls -->
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="Manual Bid:" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="bidAmountField" promptText="Enter bid amount ($)" prefWidth="200"/>
                 <Button text="Place Bid" onAction="#handlePlaceBid" styleClass="btn-filled"/>
                 <Separator orientation="VERTICAL"/>
-                <TextField fx:id="maxBidField" promptText="Max Bid" prefWidth="100"/>
-                <TextField fx:id="incrementField" promptText="Step" prefWidth="80"/>
-                <Button text="Auto Bid" onAction="#handleAutoBid" styleClass="btn-outline"/>
-                <Label fx:id="bidMessageLabel" textFill="RED"/>
+                <Label text="Auto-Bid:" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="maxBidField" promptText="Max ($)" prefWidth="90"/>
+                <TextField fx:id="incrementField" promptText="Step ($)" prefWidth="80"/>
+                <Button text="Start Auto" onAction="#handleAutoBid" styleClass="btn-outline"/>
+                <Label fx:id="bidMessageLabel"/>
             </HBox>
-            <ListView fx:id="notificationList" prefHeight="100"/>
+
+            <!-- Notifications -->
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label text="Notifications:" style="-fx-font-weight: bold; -fx-text-fill: #555;"/>
+            </HBox>
+            <ListView fx:id="notificationList" prefHeight="90">
+                <placeholder>
+                    <Label text="No notifications yet." style="-fx-text-fill: #aaa;"/>
+                </placeholder>
+            </ListView>
         </VBox>
     </bottom>
 

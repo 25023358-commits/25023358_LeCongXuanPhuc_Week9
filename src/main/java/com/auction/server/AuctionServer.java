@@ -3,11 +3,12 @@ package com.auction.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.auction.service.AuctionManager;
+import com.auction.service.AutoBidder;
 import com.auction.util.DBHelper;
 import com.auction.dao.BidTransactionDAO;
 import com.auction.dao.ItemDAO;
+import com.auction.dao.UserDAO;
 import com.auction.service.AuthService;
-import com.auction.dao.ItemDAO;
 import com.auction.entity.*;
 import java.io.*;
 import java.net.ServerSocket;
@@ -25,12 +26,17 @@ public class AuctionServer {
     private static final List<ClientHandler> clients = new CopyOnWriteArrayList<>();
     private final AuctionManager auctionManager = new AuctionManager();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final AuthService authService = new AuthService(); 
+    private final AuthService authService = new AuthService();
     private final ItemDAO itemDAO = new ItemDAO();
+    private final UserDAO userDAO = new UserDAO();
+    private final AutoBidder autoBidder;
     private final com.auction.service.AuctionScheduler auctionScheduler;
 
     public AuctionServer() {
         objectMapper.registerModule(new JavaTimeModule());
+        // Khởi tạo AutoBidder và gán vào AuctionManager
+        autoBidder = new AutoBidder(auctionManager);
+        auctionManager.setAutoBidder(autoBidder);
         auctionScheduler = new com.auction.service.AuctionScheduler(auctionManager);
     }
 
@@ -68,6 +74,7 @@ public class AuctionServer {
         private final Socket socket;
         private BufferedReader in;
         private PrintWriter out;
+        private String currentUserId; // track user for cleanup
 
         public ClientHandler(Socket socket) {
             this.socket = socket;
@@ -99,27 +106,24 @@ public class AuctionServer {
                 System.out.println("Client disconnected: " + socket.getRemoteSocketAddress());
             } finally {
                 clients.remove(this);
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                try { socket.close(); } catch (IOException e) { e.printStackTrace(); }
             }
         }
 
         private void handleMessage(Message msg) throws Exception {
             switch (msg.getType()) {
-                case "LOGIN": handleLogin(msg); break;
-                case "REGISTER": handleRegister(msg); break;
-                case "GET_ITEMS": handleListItems(); break;
-                case "CREATE_ITEM": handleCreateItem(msg); break;
-                case "BID": handleBid(msg); break;
-                case "DELETE_ITEM": handleDeleteItem(msg); break;
-                case "REGISTER_AUTO_BID": handleRegisterAutoBid(msg); break;
-                case "GET_BID_HISTORY": handleGetBidHistory(msg); break;
-                case "GET_ANALYTICS": handleGetAnalytics(msg); break;
-                case "GET_SELLER_ITEMS": handleGetSellerItems(msg); break;
-                case "LOGOUT": handleLogout(); break;
+                case "LOGIN":              handleLogin(msg); break;
+                case "REGISTER":           handleRegister(msg); break;
+                case "GET_ITEMS":          handleListItems(); break;
+                case "CREATE_ITEM":        handleCreateItem(msg); break;
+                case "BID":                handleBid(msg); break;
+                case "DELETE_ITEM":        handleDeleteItem(msg); break;
+                case "REGISTER_AUTO_BID":  handleRegisterAutoBid(msg); break;
+                case "GET_BID_HISTORY":    handleGetBidHistory(msg); break;
+                case "GET_ANALYTICS":      handleGetAnalytics(msg); break;
+                case "GET_SELLER_ITEMS":   handleGetSellerItems(msg); break;
+                case "GET_ITEM_DETAILS":   handleGetItemDetails(msg); break;
+                case "LOGOUT":             handleLogout(); break;
             }
         }
 
@@ -128,12 +132,15 @@ public class AuctionServer {
                 LoginRequest req = objectMapper.readValue(msg.getData(), LoginRequest.class);
                 User user = authService.login(req.getUsername(), req.getPassword());
                 if (user != null) {
+                    currentUserId = user.getId();
                     if (user instanceof Bidder) {
                         auctionManager.addBidder((Bidder) user);
                     }
-                    out.println(objectMapper.writeValueAsString(new Message("LOGIN_SUCCESS", objectMapper.writeValueAsString(user))));
+                    out.println(objectMapper.writeValueAsString(
+                            new Message("LOGIN_SUCCESS", objectMapper.writeValueAsString(user))));
                 } else {
-                    out.println(objectMapper.writeValueAsString(new Message("LOGIN_FAILED", "Invalid credentials")));
+                    out.println(objectMapper.writeValueAsString(
+                            new Message("LOGIN_FAILED", "Invalid credentials")));
                 }
             } catch (Exception e) {
                 out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
@@ -143,11 +150,14 @@ public class AuctionServer {
         private void handleRegister(Message msg) throws IOException {
             try {
                 RegisterRequest req = objectMapper.readValue(msg.getData(), RegisterRequest.class);
-                boolean success = authService.register(req.getUsername(), req.getEmail(), req.getPassword(), req.getRole());
+                boolean success = authService.register(req.getUsername(), req.getEmail(),
+                        req.getPassword(), req.getRole());
                 if (success) {
-                    out.println(objectMapper.writeValueAsString(new Message("REGISTER_SUCCESS", "Account created successfully.")));
+                    out.println(objectMapper.writeValueAsString(
+                            new Message("REGISTER_SUCCESS", "Account created successfully.")));
                 } else {
-                    out.println(objectMapper.writeValueAsString(new Message("REGISTER_FAILED", "Username already exists.")));
+                    out.println(objectMapper.writeValueAsString(
+                            new Message("REGISTER_FAILED", "Username already exists.")));
                 }
             } catch (Exception e) {
                 out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
@@ -159,17 +169,20 @@ public class AuctionServer {
                 Item newItem = objectMapper.readValue(msg.getData(), Item.class);
                 itemDAO.save(newItem);
                 auctionManager.addItem(newItem);
-                out.println(objectMapper.writeValueAsString(new Message("CREATE_ITEM_SUCCESS", "Item created.")));
+                out.println(objectMapper.writeValueAsString(
+                        new Message("CREATE_ITEM_SUCCESS", "Item created.")));
                 broadcast(new Message("NEW_ITEM_ADDED", objectMapper.writeValueAsString(newItem)));
             } catch (Exception e) {
-                out.println(objectMapper.writeValueAsString(new Message("CREATE_ITEM_FAILED", e.getMessage())));
+                out.println(objectMapper.writeValueAsString(
+                        new Message("CREATE_ITEM_FAILED", e.getMessage())));
             }
         }
 
         private void handleListItems() throws IOException {
             try {
-                List<Item> items = itemDAO.findAll(); 
-                out.println(objectMapper.writeValueAsString(new Message("ITEM_LIST", objectMapper.writeValueAsString(items))));
+                List<Item> items = itemDAO.findAll();
+                out.println(objectMapper.writeValueAsString(
+                        new Message("ITEM_LIST", objectMapper.writeValueAsString(items))));
             } catch (Exception e) {
                 out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
             }
@@ -179,9 +192,27 @@ public class AuctionServer {
             try {
                 BidRequest req = objectMapper.readValue(msg.getData(), BidRequest.class);
                 boolean success = auctionManager.placeBid(req.getItemId(), req.getBidderId(), req.getAmount());
-                out.println(objectMapper.writeValueAsString(new Message("BID_RESULT", String.valueOf(success))));
+                out.println(objectMapper.writeValueAsString(
+                        new Message("BID_RESULT", String.valueOf(success))));
                 if (success) {
-                    broadcast(new Message("BID_UPDATE", objectMapper.writeValueAsString(req)));
+                    // Lấy tên item để hiển thị trong notification
+                    Item item = auctionManager.getItem(req.getItemId());
+                    String itemName = (item != null) ? item.getName() : req.getItemId();
+                    // Lấy username của bidder để hiển thị
+                    String bidderName = req.getBidderId();
+                    try {
+                        UserDAO.UserRecord rec = userDAO.findById(req.getBidderId());
+                        if (rec != null) bidderName = rec.username;
+                    } catch (Exception ignored) {}
+
+                    // Tạo notification JSON chi tiết hơn
+                    Map<String, Object> bidUpdate = new HashMap<>();
+                    bidUpdate.put("itemId", req.getItemId());
+                    bidUpdate.put("itemName", itemName);
+                    bidUpdate.put("amount", req.getAmount());
+                    bidUpdate.put("bidderId", req.getBidderId());
+                    bidUpdate.put("bidderName", bidderName);
+                    broadcast(new Message("BID_UPDATE", objectMapper.writeValueAsString(bidUpdate)));
                 }
             } catch (Exception e) {
                 out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
@@ -193,32 +224,69 @@ public class AuctionServer {
                 String itemId = msg.getData();
                 itemDAO.delete(itemId);
                 broadcast(new Message("ITEM_REMOVED", itemId));
-                out.println(objectMapper.writeValueAsString(new Message("DELETE_SUCCESS", itemId)));
+                out.println(objectMapper.writeValueAsString(
+                        new Message("DELETE_SUCCESS", itemId)));
             } catch (Exception e) {
-                 try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); } catch (Exception ignored) {}
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
             }
         }
 
+        // ===== AUTO BIDDING — tích hợp đầy đủ =====
         private void handleRegisterAutoBid(Message msg) {
             try {
-                out.println(objectMapper.writeValueAsString(new Message("NOTIFY", "Auto-Bid Registered.")));
+                AutoBidRequest req = objectMapper.readValue(msg.getData(), AutoBidRequest.class);
+                autoBidder.register(req.getBidderId(), req.getItemId(), req.getMaxBid(), req.getIncrement());
+
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("itemId", req.getItemId());
+                resp.put("maxBid", req.getMaxBid());
+                resp.put("increment", req.getIncrement());
+                out.println(objectMapper.writeValueAsString(
+                        new Message("AUTO_BID_REGISTERED", objectMapper.writeValueAsString(resp))));
+                System.out.println("AutoBid registered: bidder=" + req.getBidderId()
+                        + " item=" + req.getItemId()
+                        + " max=$" + req.getMaxBid() + " step=$" + req.getIncrement());
             } catch (Exception e) {
-                 try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); } catch (Exception ignored) {}
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
             }
         }
 
         private void handleLogout() {
             clients.remove(this);
-            System.out.println("Client logged out.");
+            System.out.println("Client logged out: " + currentUserId);
         }
 
+        // ===== BID HISTORY — kèm username =====
         private void handleGetBidHistory(Message msg) {
             try {
                 String itemId = msg.getData();
                 List<BidTransaction> bids = new BidTransactionDAO().getBidsByItem(itemId);
-                out.println(objectMapper.writeValueAsString(new Message("BID_HISTORY", objectMapper.writeValueAsString(bids))));
+
+                // Tạo list có kèm username
+                List<Map<String, Object>> richBids = new java.util.ArrayList<>();
+                for (BidTransaction bid : bids) {
+                    Map<String, Object> entry = new HashMap<>();
+                    entry.put("bidderId", bid.getBidderId());
+                    entry.put("amount", bid.getBidAmount());
+                    entry.put("status", bid.getStatus());
+                    entry.put("timestamp", bid.getTimestamp() != null
+                            ? bid.getTimestamp().toString() : "");
+                    // Resolve username
+                    String username = bid.getBidderId();
+                    try {
+                        UserDAO.UserRecord rec = userDAO.findById(bid.getBidderId());
+                        if (rec != null) username = rec.username;
+                    } catch (Exception ignored) {}
+                    entry.put("bidderName", username);
+                    richBids.add(entry);
+                }
+                out.println(objectMapper.writeValueAsString(
+                        new Message("BID_HISTORY", objectMapper.writeValueAsString(richBids))));
             } catch (Exception e) {
-                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); } catch (Exception ignored) {}
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
             }
         }
 
@@ -231,9 +299,11 @@ public class AuctionServer {
                 Map<String, Object> stats = new HashMap<>();
                 stats.put("totalBids", count);
                 stats.put("highestBid", highest != null ? highest.getBidAmount() : 0.0);
-                out.println(objectMapper.writeValueAsString(new Message("ANALYTICS", objectMapper.writeValueAsString(stats))));
+                out.println(objectMapper.writeValueAsString(
+                        new Message("ANALYTICS", objectMapper.writeValueAsString(stats))));
             } catch (Exception e) {
-                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); } catch (Exception ignored) {}
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
             }
         }
 
@@ -241,9 +311,56 @@ public class AuctionServer {
             try {
                 String sellerId = msg.getData();
                 List<Item> items = new ItemDAO().findBySeller(sellerId);
-                out.println(objectMapper.writeValueAsString(new Message("SELLER_ITEMS", objectMapper.writeValueAsString(items))));
+                out.println(objectMapper.writeValueAsString(
+                        new Message("SELLER_ITEMS", objectMapper.writeValueAsString(items))));
             } catch (Exception e) {
-                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); } catch (Exception ignored) {}
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
+            }
+        }
+
+        // ===== ITEM DETAILS — trả về chi tiết item + seller name + bid count =====
+        private void handleGetItemDetails(Message msg) {
+            try {
+                String itemId = msg.getData();
+                Item item = itemDAO.findById(itemId);
+                if (item == null) {
+                    out.println(objectMapper.writeValueAsString(
+                            new Message("ERROR", "Item not found: " + itemId)));
+                    return;
+                }
+                BidTransactionDAO bidDAO = new BidTransactionDAO();
+                int bidCount = bidDAO.countBids(itemId);
+                BidTransaction highestBid = bidDAO.getHighestBid(itemId);
+
+                // Lấy tên seller
+                String sellerName = item.getSellerId();
+                try {
+                    UserDAO.UserRecord sellerRec = userDAO.findById(item.getSellerId());
+                    if (sellerRec != null) sellerName = sellerRec.username;
+                } catch (Exception ignored) {}
+
+                // Lấy tên winner (nếu có)
+                String winnerName = null;
+                if (item.getHighestBidderId() != null) {
+                    try {
+                        UserDAO.UserRecord winnerRec = userDAO.findById(item.getHighestBidderId());
+                        if (winnerRec != null) winnerName = winnerRec.username;
+                    } catch (Exception ignored) {}
+                }
+
+                Map<String, Object> details = new HashMap<>();
+                details.put("item", item);
+                details.put("sellerName", sellerName);
+                details.put("bidCount", bidCount);
+                details.put("highestBidAmount", highestBid != null ? highestBid.getBidAmount() : 0.0);
+                details.put("winnerName", winnerName != null ? winnerName : "N/A");
+
+                out.println(objectMapper.writeValueAsString(
+                        new Message("ITEM_DETAILS", objectMapper.writeValueAsString(details))));
+            } catch (Exception e) {
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
             }
         }
     }

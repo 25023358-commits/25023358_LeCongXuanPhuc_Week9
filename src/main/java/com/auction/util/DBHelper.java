@@ -27,9 +27,7 @@ public class DBHelper {
                     ")";
             stmt.execute(createUsersTable);
             
-            // Ép buộc cập nhật cấu trúc: Xóa bảng cũ và tạo lại với đầy đủ cột mới
-            // (Chỉ nên làm việc này trong giai đoạn phát triển để cập nhật schema)
-            stmt.execute("DROP TABLE IF EXISTS items");
+            // Schema đã ổn định - KHÔNG drop table để giữ dữ liệu
 
             String createItemsTable = "CREATE TABLE IF NOT EXISTS items (" +
                     "id TEXT PRIMARY KEY," +
