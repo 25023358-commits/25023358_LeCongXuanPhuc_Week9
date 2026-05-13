@@ -46,7 +46,7 @@
                 <Button text="Place Bid" onAction="#handlePlaceBid" styleClass="btn-filled"/>
                 <Label fx:id="bidMessageLabel" textFill="RED"/>
             </HBox>
-            <ListView fx:id="notificationList" prefHeight="100" placeholder="No new notifications."/>
+            <ListView fx:id="notificationList" prefHeight="100"/>
         </VBox>
     </bottom>
 

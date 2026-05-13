@@ -29,14 +29,18 @@ public class DBHelper {
             String createItemsTable = "CREATE TABLE IF NOT EXISTS items (" +
                     "id TEXT PRIMARY KEY," +
                     "name TEXT," +
+                    "description TEXT," +                    // ← THÊM
                     "starting_price REAL," +
-                    "current_highest_bid REAL," +
+                    "current_bid REAL," +                    // ← ĐỔI TÊN
                     "highest_bidder_id TEXT," +
                     "type TEXT," +
                     "seller_id TEXT," +
                     "status TEXT DEFAULT 'OPEN'," +
-                    "start_time INTEGER," +
-                    "end_time INTEGER," +
+                    "start_time TEXT," +                     // ← ĐỔI KIỂU THÀNH TEXT
+                    "end_time TEXT," +                       // ← ĐỔI KIỂU THÀNH TEXT
+                    "warranty_months INTEGER," +             // ← THÊM
+                    "artist_name TEXT," +                    // ← THÊM
+                    "created_at INTEGER DEFAULT (strftime('%s','now'))," +  // ← THÊM
                     "FOREIGN KEY (seller_id) REFERENCES users(id)" +
                     ")";
             stmt.execute(createItemsTable);

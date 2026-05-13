@@ -123,13 +123,16 @@ public class AuctionServer {
         private void handleListItems() throws IOException {
             ItemDAO itemDAO = new ItemDAO();
             try {
-                var items = itemDAO.findAll(); // Sử dụng hàm findAll() từ ItemDAO
+                System.out.println("Fetching items from database...");
+                var items = itemDAO.findAll();
+                System.out.println("Items fetched successfully: " + items.size()); // In số lượng items
                 out.println(objectMapper.writeValueAsString(new Message("ITEM_LIST", objectMapper.writeValueAsString(items))));
             } catch (Exception e) {
+                System.out.println("ERROR in handleListItems: " + e.getMessage());
+                e.printStackTrace(); // In full stack trace
                 out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
             }
         }
-
         private void handleBid(Message msg) throws IOException {
             try {
                 BidRequest req = objectMapper.readValue(msg.getData(), BidRequest.class);
