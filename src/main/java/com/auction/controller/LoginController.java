@@ -127,7 +127,8 @@ public class LoginController {
 
             Stage stage = (Stage) loginButton.getScene().getWindow();
             stage.setTitle("Live Auction System - User: " + user.getUsername());
-            stage.setScene(new Scene(root, 900, 600));
+            stage.setScene(new Scene(root, 1100, 720));
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
             Platform.runLater(() -> {

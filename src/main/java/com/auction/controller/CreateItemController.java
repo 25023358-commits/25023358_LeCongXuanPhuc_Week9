@@ -38,6 +38,10 @@ public class CreateItemController {
     @FXML
     private TextField artistField;
     @FXML
+    private VBox vehiclePane;
+    @FXML
+    private TextField engineCCField;
+    @FXML
     private Label messageLabel;
 
     private ClientConnection connection;
@@ -58,24 +62,25 @@ public class CreateItemController {
 
     @FXML
     public void initialize() {
-        categoryComboBox.getItems().addAll("Electronics", "Art");
+        categoryComboBox.getItems().addAll("Electronics", "Art", "Vehicle");
 
         categoryComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-            if (newValue == null) {
-                electronicsPane.setVisible(false);
-                electronicsPane.setManaged(false);
-                artPane.setVisible(false);
-                artPane.setManaged(false);
-            } else if (newValue.equals("Electronics")) {
+            electronicsPane.setVisible(false);
+            electronicsPane.setManaged(false);
+            artPane.setVisible(false);
+            artPane.setManaged(false);
+            vehiclePane.setVisible(false);
+            vehiclePane.setManaged(false);
+
+            if ("Electronics".equals(newValue)) {
                 electronicsPane.setVisible(true);
                 electronicsPane.setManaged(true);
-                artPane.setVisible(false);
-                artPane.setManaged(false);
-            } else if (newValue.equals("Art")) {
-                electronicsPane.setVisible(false);
-                electronicsPane.setManaged(false);
+            } else if ("Art".equals(newValue)) {
                 artPane.setVisible(true);
                 artPane.setManaged(true);
+            } else if ("Vehicle".equals(newValue)) {
+                vehiclePane.setVisible(true);
+                vehiclePane.setManaged(true);
             }
         });
     }
@@ -90,7 +95,7 @@ public class CreateItemController {
         String name = nameField.getText();
         String description = descriptionArea.getText();
         String category = categoryComboBox.getValue();
-        
+
         if (name.isEmpty() || description.isEmpty() || priceField.getText().isEmpty() ||
             startDatePicker.getValue() == null || endDatePicker.getValue() == null || category == null) {
             messageLabel.setText("Please fill in all required fields.");
@@ -102,7 +107,7 @@ public class CreateItemController {
             LocalDateTime startTime = startDatePicker.getValue().atStartOfDay();
             LocalDateTime endTime = endDatePicker.getValue().atTime(23, 59, 59);
 
-            if(endTime.isBefore(startTime)) {
+            if (endTime.isBefore(startTime)) {
                 messageLabel.setText("End date must be after start date.");
                 return;
             }
@@ -118,42 +123,49 @@ public class CreateItemController {
             } else if (category.equals("Art")) {
                 String artist = artistField.getText();
                 if (artist.isEmpty()) {
-                     messageLabel.setText("Please enter artist name.");
-                     return;
+                    messageLabel.setText("Please enter artist name.");
+                    return;
                 }
                 newItem = ItemFactory.createItem("art", itemId, name, description, price, startTime, endTime, currentSeller.getId(), artist);
+            } else if (category.equals("Vehicle")) {
+                int engineCC = Integer.parseInt(engineCCField.getText());
+                newItem = ItemFactory.createItem("vehicle", itemId, name, description, price, startTime, endTime, currentSeller.getId(), engineCC);
             }
-            
-            // Tạm thời gắn sellerId (chưa có trường trong class Item, có thể dùng highestBidderId làm workaround hoặc cập nhật Item class)
-            // Trong thực tế, nên thêm thuộc tính sellerId vào class Item.
-            
-            if (newItem != null) {
-                // Đóng gói đối tượng Item thành JSON và gửi lên Server
-                String itemJson = objectMapper.writeValueAsString(newItem);
-                Message msg = new Message("CREATE_ITEM", itemJson);
-                connection.sendMessage(msg);
 
-                Message response = connection.receiveMessage();
+            if (newItem == null) return;
 
-                if ("CREATE_ITEM_SUCCESS".equals(response.getType())) {
+            // Đóng gói đối tượng Item thành JSON
+            String itemJson = objectMapper.writeValueAsString(newItem);
+            Message msg = new Message("CREATE_ITEM", itemJson);
+
+            // ✅ FIX: Gửi message trên background thread để không chặn UI Thread.
+            // Không gọi connection.receiveMessage() ở đây vì listenThread trong
+            // AuctionController đã đang đọc socket — gọi thêm sẽ gây race condition.
+            // Response "CREATE_ITEM_SUCCESS" sẽ được xử lý bởi listener của AuctionController.
+            Platform.runLater(() -> messageLabel.setText("Creating item..."));
+            Thread sendThread = new Thread(() -> {
+                try {
+                    connection.sendMessage(msg);
+                    // Đóng cửa sổ sau khi gửi thành công (server sẽ broadcast NEW_ITEM_ADDED)
                     Platform.runLater(() -> {
                         messageLabel.setTextFill(javafx.scene.paint.Color.GREEN);
-                        messageLabel.setText("Item created successfully!");
-                        // Đóng cửa sổ sau khi thành công
+                        messageLabel.setText("Item sent to server!");
                         nameField.getScene().getWindow().hide();
                     });
-                } else {
+                } catch (Exception ex) {
                     Platform.runLater(() -> {
                         messageLabel.setTextFill(javafx.scene.paint.Color.RED);
-                        messageLabel.setText("Failed to create item: " + response.getData());
+                        messageLabel.setText("Network error: " + ex.getMessage());
                     });
                 }
-            }
+            });
+            sendThread.setDaemon(true);
+            sendThread.start();
 
         } catch (NumberFormatException e) {
             messageLabel.setText("Price and Warranty must be valid numbers.");
         } catch (Exception e) {
-             messageLabel.setText("Network error: " + e.getMessage());
+            messageLabel.setText("Error: " + e.getMessage());
         }
     }
 

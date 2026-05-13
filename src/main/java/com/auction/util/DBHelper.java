@@ -45,6 +45,7 @@ public class DBHelper {
                     "end_time TEXT," +                       // ← ĐỔI KIỂU THÀNH TEXT
                     "warranty_months INTEGER," +             // ← THÊM
                     "artist_name TEXT," +                    // ← THÊM
+                    "engine_cc INTEGER," +                   // ← THÊM
                     "created_at INTEGER DEFAULT (strftime('%s','now'))," +  // ← THÊM
                     "FOREIGN KEY (seller_id) REFERENCES users(id)" +
                     ")";

@@ -2,6 +2,7 @@ package com.auction.dao;
 
 import com.auction.entity.Art;
 import com.auction.entity.Electronics;
+import com.auction.entity.Vehicle;
 import com.auction.entity.Item;
 import com.auction.util.DBHelper;
 import java.sql.*;
@@ -27,7 +28,7 @@ public class ItemDAO {
                 UPDATE items SET
                     name = ?, description = ?, starting_price = ?, current_bid = ?,
                     highest_bidder_id = ?, start_time = ?, end_time = ?, status = ?,
-                    warranty_months = ?, artist_name = ?
+                    warranty_months = ?, artist_name = ?, engine_cc = ?
                 WHERE id = ?
             """;
         } else {
@@ -35,8 +36,8 @@ public class ItemDAO {
             sql = """
                 INSERT INTO items (name, description, starting_price, current_bid,
                                    highest_bidder_id, start_time, end_time, status,
-                                   warranty_months, artist_name, id, type, seller_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                   warranty_months, artist_name, engine_cc, id, type, seller_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
         }
 
@@ -53,22 +54,31 @@ public class ItemDAO {
             if (item instanceof Electronics) {
                 stmt.setInt(9, ((Electronics) item).getWarrantyMonths());
                 stmt.setNull(10, Types.VARCHAR);
+                stmt.setNull(11, Types.INTEGER);
                 if (!exists) {
-                    stmt.setString(12, "ELECTRONICS");
+                    stmt.setString(13, "ELECTRONICS");
                 }
             } else if (item instanceof Art) {
                 stmt.setNull(9, Types.INTEGER);
                 stmt.setString(10, ((Art) item).getArtistName());
+                stmt.setNull(11, Types.INTEGER);
                 if (!exists) {
-                    stmt.setString(12, "ART");
+                    stmt.setString(13, "ART");
+                }
+            } else if (item instanceof Vehicle) {
+                stmt.setNull(9, Types.INTEGER);
+                stmt.setNull(10, Types.VARCHAR);
+                stmt.setInt(11, ((Vehicle) item).getEngineCC());
+                if (!exists) {
+                    stmt.setString(13, "VEHICLE");
                 }
             }
 
             if (exists) {
-                stmt.setString(11, item.getId());
+                stmt.setString(12, item.getId());
             } else {
-                stmt.setString(11, item.getId());
-                stmt.setString(13, item.getSellerId());
+                stmt.setString(12, item.getId());
+                stmt.setString(14, item.getSellerId());
             }
 
             stmt.executeUpdate();
@@ -155,9 +165,12 @@ public class ItemDAO {
         if ("ELECTRONICS".equals(type)) {
             int warranty = rs.getInt("warranty_months");
             item = new Electronics(id, name, description, startingPrice, startTime, endTime, sellerId, warranty);
-        } else {
+        } else if ("ART".equals(type)) {
             String artist = rs.getString("artist_name");
             item = new Art(id, name, description, startingPrice, startTime, endTime, sellerId, artist);
+        } else {
+            int engineCC = rs.getInt("engine_cc");
+            item = new Vehicle(id, name, description, startingPrice, startTime, endTime, sellerId, engineCC);
         }
 
         item.setCurrentHighestBid(rs.getDouble("current_bid"));

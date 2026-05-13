@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,
-    property = "role" // Đây là tên trường trong JSON sẽ quyết định tạo lớp con nào
+    property = "role", // Đây là tên trường trong JSON sẽ quyết định tạo lớp con nào
+    visible = true
 )
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Bidder.class, name = "BIDDER"),

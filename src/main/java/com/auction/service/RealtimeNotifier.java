@@ -57,4 +57,9 @@ public class RealtimeNotifier {
             }, seconds - i, TimeUnit.SECONDS);
         }
     }
+
+    public void notifySniping(String itemId, int remainingSeconds) {
+        String msg = String.format("Item %s extended! Remaining: %ds", itemId, remainingSeconds);
+        com.auction.server.AuctionServer.broadcast(new com.auction.entity.Message("ANTI_SNIPING", msg));
+    }
 }
