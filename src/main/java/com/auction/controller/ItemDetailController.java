@@ -10,6 +10,12 @@ import javafx.stage.Stage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import com.auction.client.ClientConnection;
+import com.auction.entity.User;
+import com.auction.entity.Message;
+import javafx.scene.control.Button;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 /**
  * ItemDetailController — Hiển thị chi tiết đầy đủ của một item đấu giá.
@@ -29,11 +35,21 @@ public class ItemDetailController {
     @FXML private Label endTimeLabel;
     @FXML private Label statusLabel;
     @FXML private Label extraInfoLabel;
+    @FXML private Button btnPayNow;
+
+    private ClientConnection connection;
+    private User currentUser;
+    private Item currentItem;
 
     private static final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
     private static final DateTimeFormatter DT_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    public void setConnectionAndUser(ClientConnection connection, User user) {
+        this.connection = connection;
+        this.currentUser = user;
+    }
 
     /**
      * Được gọi từ AuctionController sau khi nhận ITEM_DETAILS từ server.
@@ -44,6 +60,7 @@ public class ItemDetailController {
 
             // Đọc item object
             Item item = mapper.treeToValue(root.get("item"), Item.class);
+            this.currentItem = item;
             String sellerName = root.has("sellerName") ? root.get("sellerName").asText() : "Unknown";
             int bidCount = root.has("bidCount") ? root.get("bidCount").asInt() : 0;
             double highestBid = root.has("highestBidAmount") ? root.get("highestBidAmount").asDouble() : 0.0;
@@ -82,6 +99,17 @@ public class ItemDetailController {
                 extraInfoLabel.setText("");
             }
 
+            // Hiện nút Pay Now nếu đang FINISHED và user hiện tại là winner
+            if (item.getStatus() == Item.Status.FINISHED 
+                && currentUser != null 
+                && currentUser.getId().equals(item.getHighestBidderId())) {
+                btnPayNow.setVisible(true);
+                btnPayNow.setManaged(true);
+            } else {
+                btnPayNow.setVisible(false);
+                btnPayNow.setManaged(false);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             itemNameLabel.setText("Error loading details: " + e.getMessage());
@@ -92,5 +120,26 @@ public class ItemDetailController {
     private void handleClose() {
         Stage stage = (Stage) itemNameLabel.getScene().getWindow();
         stage.close();
+    }
+
+    @FXML
+    private void handlePayNow() {
+        if (currentItem == null || connection == null) return;
+        
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Payment");
+        alert.setHeaderText("Pay for " + currentItem.getName());
+        alert.setContentText(String.format("Are you sure you want to pay $%.2f for this item?", currentItem.getCurrentHighestBid()));
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    connection.sendMessage(new Message("PAY_ITEM", currentItem.getId()));
+                    handleClose();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

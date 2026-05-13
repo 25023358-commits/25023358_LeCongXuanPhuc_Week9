@@ -95,7 +95,10 @@
     </ScrollPane>
 
     <!-- Footer -->
-    <HBox alignment="CENTER_RIGHT" style="-fx-padding: 12 20; -fx-background-color: #ecf0f1;">
+    <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 12 20; -fx-background-color: #ecf0f1;">
+        <Button fx:id="btnPayNow" text="💳 Pay Now" onAction="#handlePayNow" visible="false" managed="false"
+                style="-fx-background-color: #f1c40f; -fx-text-fill: #2c3e50; -fx-font-weight: bold;
+                       -fx-padding: 8 24; -fx-background-radius: 6; -fx-cursor: hand;"/>
         <Button text="Close" onAction="#handleClose"
                 style="-fx-background-color: #2c3e50; -fx-text-fill: white;
                        -fx-padding: 8 24; -fx-background-radius: 6; -fx-cursor: hand;"/>

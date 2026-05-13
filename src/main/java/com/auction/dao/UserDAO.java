@@ -24,13 +24,13 @@ public class UserDAO {
     // CREATE — thêm user mới (dùng khi đăng ký)
     // =========================================================
     public void insert(String id, String username, String email,
-                       String hashedPassword, String role, double balance)
+            String hashedPassword, String role, double balance)
             throws SQLException {
 
         String sql = """
-            INSERT INTO users (id, username, email, password, role, balance)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """;
+                    INSERT INTO users (id, username, email, password, role, balance)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """;
 
         try (PreparedStatement stmt = DBHelper.getConnection()
                 .prepareStatement(sql)) {
@@ -57,7 +57,8 @@ public class UserDAO {
             stmt.setString(1, username);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return mapRow(rs);
+                if (rs.next())
+                    return mapRow(rs);
             }
         }
         return null;
@@ -74,7 +75,8 @@ public class UserDAO {
             stmt.setString(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return mapRow(rs);
+                if (rs.next())
+                    return mapRow(rs);
             }
         }
         return null;
@@ -93,6 +95,23 @@ public class UserDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) list.add(mapRow(rs));
+            }
+        }
+        return list;
+    }
+
+    // =========================================================
+    // READ — lấy tất cả người dùng (Admin dùng)
+    // =========================================================
+    public List<UserRecord> findAll() throws SQLException {
+        String sql = "SELECT * FROM users ORDER BY created_at DESC";
+        List<UserRecord> list = new ArrayList<>();
+
+        try (PreparedStatement stmt = DBHelper.getConnection().prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
             }
         }
         return list;
@@ -130,14 +149,14 @@ public class UserDAO {
     // mapRow — tái sử dụng ở mọi method, đổi cột chỉ sửa 1 chỗ
     // =========================================================
     private UserRecord mapRow(ResultSet rs) throws SQLException {
-        UserRecord r    = new UserRecord();
-        r.id            = rs.getString("id");
-        r.username      = rs.getString("username");
-        r.email         = rs.getString("email");
-        r.hashedPassword= rs.getString("password");
-        r.role          = rs.getString("role");
-        r.balance       = rs.getDouble("balance");
-        r.createdAt     = rs.getString("created_at");
+        UserRecord r = new UserRecord();
+        r.id = rs.getString("id");
+        r.username = rs.getString("username");
+        r.email = rs.getString("email");
+        r.hashedPassword = rs.getString("password");
+        r.role = rs.getString("role");
+        r.balance = rs.getDouble("balance");
+        r.createdAt = rs.getString("created_at");
         return r;
     }
 }

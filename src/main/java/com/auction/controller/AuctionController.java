@@ -43,6 +43,7 @@ public class AuctionController {
     @FXML private TableColumn<Item, String> priceColumn;
     @FXML private TableColumn<Item, String> statusColumn;
     @FXML private TableColumn<Item, String> endTimeColumn;
+    @FXML private TableColumn<Item, String> myStatusColumn;
     @FXML private Text selectedItemText;
     @FXML private TextField bidAmountField;
     @FXML private Label bidMessageLabel;
@@ -53,12 +54,28 @@ public class AuctionController {
     @FXML private LineChart<String, Number> priceChart;
     @FXML private Button viewDetailsButton;
     @FXML private Label userBalanceLabel;
+    @FXML private Button topUpButton;
+    @FXML private TextField searchField;
+    @FXML private ComboBox<String> statusFilter;
+    @FXML private Label autoBidStatusLabel;
+
+    private ObservableList<Item> masterData = FXCollections.observableArrayList();
 
     private XYChart.Series<String, Number> priceSeries = new XYChart.Series<>();
     private ClientConnection connection;
     private User currentUser;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ScheduledExecutorService timerExecutor = Executors.newSingleThreadScheduledExecutor();
+    private MainLayoutController mainLayoutController;
+    private AdminDashboardController adminDashboardController;
+
+    public void setMainLayoutController(MainLayoutController mlc) {
+        this.mainLayoutController = mlc;
+    }
+
+    public void setAdminDashboardController(AdminDashboardController adc) {
+        this.adminDashboardController = adc;
+    }
 
     public AuctionController() {
         objectMapper.registerModule(new JavaTimeModule());
@@ -76,20 +93,54 @@ public class AuctionController {
             var item = cellData.getValue();
             return new SimpleStringProperty(item.getStatus() != null ? item.getStatus().name() : "N/A");
         });
+
+        myStatusColumn.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    Item auctionItem = getTableView().getItems().get(getIndex());
+                    if (currentUser == null || auctionItem.getHighestBidderId() == null) {
+                        setText("-");
+                        setStyle("-fx-text-fill: #95a5a6;");
+                    } else if (currentUser.getId().equals(auctionItem.getHighestBidderId())) {
+                        setText("👑 Winning");
+                        setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+                    } else {
+                        setText("Outbid");
+                        setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                    }
+                }
+            }
+        });
+
         endTimeColumn.setCellValueFactory(cellData -> {
             Item item = cellData.getValue();
             LocalDateTime end = item.getEndTime();
             if (end == null) return new SimpleStringProperty("N/A");
-            String formatted;
-            if (end.isBefore(LocalDateTime.now())) {
-                formatted = "Finished";
-            } else {
-                Duration duration = Duration.between(LocalDateTime.now(), end);
-                long hours = duration.toHours();
-                long minutes = duration.toMinutesPart();
-                formatted = String.format("%dh %dm", hours, minutes);
+            if (end.isBefore(LocalDateTime.now())) return new SimpleStringProperty("Ended");
+            Duration duration = Duration.between(LocalDateTime.now(), end);
+            return new SimpleStringProperty(String.format("%02dh:%02dm:%02ds", duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart()));
+        });
+
+        endTimeColumn.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    if (item.startsWith("00h:00m") || item.equals("Ended")) {
+                        setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                    } else {
+                        setStyle("");
+                    }
+                }
             }
-            return new SimpleStringProperty(formatted);
         });
 
         itemTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
@@ -102,11 +153,22 @@ public class AuctionController {
                 selectedItemText.setText("No item selected");
                 priceChart.getData().clear();
                 bidHistoryList.getItems().clear();
+                if (autoBidStatusLabel != null) autoBidStatusLabel.setText("");
                 if (viewDetailsButton != null) viewDetailsButton.setDisable(true);
             }
         });
 
         priceChart.getData().add(priceSeries);
+
+        // Search & Filter setup
+        if (statusFilter != null) {
+            statusFilter.getItems().addAll("ALL", "OPEN", "RUNNING", "FINISHED");
+            statusFilter.setValue("ALL");
+            statusFilter.valueProperty().addListener((obs, oldVal, newVal) -> filterItems());
+        }
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> filterItems());
+        }
 
         // Disable details button until item is selected
         if (viewDetailsButton != null) viewDetailsButton.setDisable(true);
@@ -151,8 +213,13 @@ public class AuctionController {
                         String bidderName = node.has("bidderName") ? node.get("bidderName").asText() : "Unknown";
                         double amount = node.has("amount") ? node.get("amount").asDouble() : 0;
 
-                        addNotification(String.format("[BID] %s placed $%.2f on \"%s\"",
-                                bidderName, amount, itemName));
+                        String log = String.format("[BID] %s placed $%.2f on \"%s\"",
+                                bidderName, amount, itemName);
+                        addNotification(log);
+                        if (adminDashboardController != null) adminDashboardController.addSystemLog(log);
+                        if (mainLayoutController != null && mainLayoutController.getMyItemsController() != null) {
+                            mainLayoutController.getMyItemsController().addSalesLog(log);
+                        }
 
                         // Cập nhật biểu đồ nếu item đang được chọn
                         Item selected = itemTable.getSelectionModel().getSelectedItem();
@@ -176,6 +243,20 @@ public class AuctionController {
                         } else {
                             bidMessageLabel.setTextFill(javafx.scene.paint.Color.RED);
                             bidMessageLabel.setText("Bid failed — check balance or amount.");
+                        }
+                        break;
+                    }
+
+                    case "ANTI_SNIPING_TRIGGERED": {
+                        fetchItemsFromServer();
+                        JsonNode node = objectMapper.readTree(msg.getData());
+                        String itemId = node.get("itemId").asText();
+                        long rem = node.get("remainingSeconds").asLong();
+                        String log = String.format("🛡️ [Anti-Sniping] Auction for \"%s\" extended! New time: %ds", itemId, rem);
+                        addNotification(log);
+                        if (adminDashboardController != null) adminDashboardController.addSystemLog(log);
+                        if (mainLayoutController != null && mainLayoutController.getMyItemsController() != null) {
+                            mainLayoutController.getMyItemsController().addSalesLog(log);
                         }
                         break;
                     }
@@ -221,16 +302,36 @@ public class AuctionController {
                         List<Item> items = objectMapper.readValue(msg.getData(),
                                 new TypeReference<List<Item>>() {});
                         loadItems(FXCollections.observableArrayList(items));
+                        if (adminDashboardController != null) adminDashboardController.loadItems(msg.getData());
                         break;
                     }
 
                     case "SELLER_ITEMS": {
                         List<Item> sellerItems = objectMapper.readValue(msg.getData(),
                                 new TypeReference<List<Item>>() {});
-                        loadItems(FXCollections.observableArrayList(sellerItems));
+                        if (mainLayoutController != null && mainLayoutController.getMyItemsController() != null) {
+                            mainLayoutController.getMyItemsController().loadItems(sellerItems);
+                        } else {
+                            loadItems(FXCollections.observableArrayList(sellerItems));
+                        }
                         addNotification("[DASHBOARD] Showing your " + sellerItems.size() + " item(s).");
                         break;
                     }
+
+                    case "ALL_USERS":
+                        if (adminDashboardController != null) {
+                            adminDashboardController.loadUsers(msg.getData());
+                        }
+                        break;
+
+                    case "DELETE_USER_SUCCESS":
+                        Platform.runLater(() -> {
+                            addNotification("[ADMIN] Deleted user successfully: " + msg.getData());
+                             if (adminDashboardController != null) {
+                                 adminDashboardController.handleRefreshAll();
+                             }
+                        });
+                        break;
 
                     case "BID_HISTORY": {
                         // Server trả về list Map có bidderName
@@ -248,13 +349,30 @@ public class AuctionController {
 
                     case "AUTO_BID_REGISTERED": {
                         JsonNode node = objectMapper.readTree(msg.getData());
-                        bidMessageLabel.setTextFill(javafx.scene.paint.Color.BLUE);
-                        bidMessageLabel.setText(String.format(
-                                "Auto-Bid ON: max=$%.2f step=$%.2f",
-                                node.get("maxBid").asDouble(),
-                                node.get("increment").asDouble()));
-                        addNotification(String.format("[AUTO-BID] Registered for max=$%.2f step=$%.2f",
-                                node.get("maxBid").asDouble(), node.get("increment").asDouble()));
+                        String itemId = node.get("itemId").asText();
+                        double max = node.get("maxBid").asDouble();
+                        String log = String.format("🤖 [AUTO-BID] Active for %s (Max: $%.2f)", itemId, max);
+                        
+                        if (autoBidStatusLabel != null) {
+                            autoBidStatusLabel.setText(String.format("ACTIVE: Max $%.2f | Step $%.2f", 
+                                max, node.get("increment").asDouble()));
+                        }
+                        
+                        bidMessageLabel.setTextFill(javafx.scene.paint.Color.GREEN);
+                        bidMessageLabel.setText("Auto-Bid activated!");
+                        addNotification(log);
+                        if (adminDashboardController != null) adminDashboardController.addSystemLog(log);
+                        break;
+                    }
+
+                    case "TOP_UP_SUCCESS": {
+                        JsonNode node = objectMapper.readTree(msg.getData());
+                        double newBalance = node.get("newBalance").asDouble();
+                        addNotification(String.format("[TOP-UP] Added funds successfully. New Balance: $%.2f", newBalance));
+                        if (currentUser instanceof com.auction.entity.Bidder) {
+                            ((com.auction.entity.Bidder) currentUser).setBalance(newBalance);
+                            userBalanceLabel.setText(String.format("Balance: $%.2f", newBalance));
+                        }
                         break;
                     }
 
@@ -287,20 +405,51 @@ public class AuctionController {
         this.currentUser = user;
         if (user != null) {
             if ("SELLER".equals(user.getRole())) {
-                createNewItemButton.setVisible(true);
-                createNewItemButton.setManaged(true);
-                myItemsButton.setVisible(true);
-                myItemsButton.setManaged(true);
+                if (createNewItemButton != null) {
+                    createNewItemButton.setVisible(true);
+                    createNewItemButton.setManaged(true);
+                }
+                if (myItemsButton != null) {
+                    myItemsButton.setVisible(true);
+                    myItemsButton.setManaged(true);
+                }
+                if (topUpButton != null) {
+                    topUpButton.setVisible(false);
+                    topUpButton.setManaged(false);
+                }
             }
             if (userBalanceLabel != null && "BIDDER".equals(user.getRole())) {
                 com.auction.entity.Bidder bidder = (com.auction.entity.Bidder) user;
                 userBalanceLabel.setText(String.format("Balance: $%.2f", bidder.getBalance()));
+                if (topUpButton != null) {
+                    topUpButton.setVisible(true);
+                    topUpButton.setManaged(true);
+                }
             }
         }
     }
 
     public void loadItems(ObservableList<Item> items) {
-        Platform.runLater(() -> itemTable.setItems(items));
+        Platform.runLater(() -> {
+            masterData.setAll(items);
+            filterItems();
+        });
+    }
+
+    private void filterItems() {
+        if (searchField == null || statusFilter == null) return;
+        String searchText = searchField.getText() == null ? "" : searchField.getText().toLowerCase();
+        String status = statusFilter.getValue() == null ? "ALL" : statusFilter.getValue();
+
+        ObservableList<Item> filtered = FXCollections.observableArrayList();
+        for (Item item : masterData) {
+            boolean matchesSearch = item.getName().toLowerCase().contains(searchText);
+            boolean matchesStatus = status.equals("ALL") || (item.getStatus() != null && item.getStatus().name().equals(status));
+            if (matchesSearch && matchesStatus) {
+                filtered.add(item);
+            }
+        }
+        itemTable.setItems(filtered);
     }
 
     private void fetchBidHistory(String itemId) {
@@ -459,6 +608,7 @@ public class AuctionController {
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent root = loader.load();
             ItemDetailController controller = loader.getController();
+            controller.setConnectionAndUser(this.connection, this.currentUser);
             controller.loadDetails(detailsJson);
 
             Stage stage = new Stage();
@@ -493,5 +643,32 @@ public class AuctionController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @FXML
+    private void handleTopUp() {
+        TextInputDialog dialog = new TextInputDialog("100");
+        dialog.setTitle("Top Up Balance");
+        dialog.setHeaderText("Add funds to your bidding account");
+        dialog.setContentText("Enter amount ($):");
+
+        java.util.Optional<String> result = dialog.showAndWait();
+        result.ifPresent(amountStr -> {
+            try {
+                double amount = Double.parseDouble(amountStr);
+                if (amount > 0) {
+                    Map<String, Object> req = new java.util.HashMap<>();
+                    req.put("userId", currentUser.getId());
+                    req.put("amount", amount);
+                    connection.sendMessage(new Message("TOP_UP", objectMapper.writeValueAsString(req)));
+                } else {
+                    addNotification("[ERROR] Top-up amount must be positive.");
+                }
+            } catch (NumberFormatException e) {
+                addNotification("[ERROR] Invalid amount format.");
+            } catch (Exception e) {
+                addNotification("[ERROR] Could not send top-up request.");
+            }
+        });
     }
 }

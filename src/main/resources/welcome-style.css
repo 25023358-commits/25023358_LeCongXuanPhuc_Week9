@@ -2,12 +2,42 @@
 .root {
     /* Sử dụng các font chữ hiện đại, không chân (sans-serif) */
     -fx-font-family: "Inter", "Roboto", "Open Sans", "Helvetica Neue", Arial, sans-serif;
+    
+    /* Ghi đè màu viền xanh dương mặc định của JavaFX khi Focus */
+    -fx-focus-color: #27ae60;
+    -fx-faint-focus-color: rgba(39, 174, 96, 0.2);
+}
+
+/* ==== TEXT FIELDS & PASSWORD FIELDS ==== */
+.text-field, .password-field, .text-area {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 2px;
+    -fx-highlight-fill: #27ae60; /* Màu nền khi bôi đen văn bản */
+    -fx-highlight-text-fill: white;
+}
+
+.text-field:hover, .password-field:hover, .text-area:hover {
+    -fx-border-color: rgba(39, 174, 96, 0.5); /* Nổi viền xanh nhẹ khi hover */
+    -fx-effect: dropshadow(gaussian, rgba(39, 174, 96, 0.2), 10, 0, 0, 2);
+}
+
+.text-field:focused, .password-field:focused, .text-area:focused {
+    -fx-border-color: #27ae60; /* Viền xanh lá đậm khi click vào */
+    -fx-effect: dropshadow(gaussian, rgba(39, 174, 96, 0.4), 10, 0, 0, 2);
+}
+
+.text-area .content {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
 }
 
 /* ==== BÊN TRÁI: Gradient Xanh đậm ==== */
 .left-pane {
     /* Tạo dải màu gradient tuyến tính chéo */
-    -fx-background-color: linear-gradient(to bottom right, #1a2a6c, #112240, #2980b9);
+    -fx-background-color: linear-gradient(to bottom right, #0A2B1A, #0D3A26, #1E6646);
 }
 
 /* Hình khối trừu tượng mờ ảo */
@@ -15,7 +45,7 @@
     -fx-fill: linear-gradient(to bottom right, rgba(255,255,255,0.1), rgba(255,255,255,0.0));
 }
 .abstract-circle-2 {
-    -fx-fill: linear-gradient(to top left, rgba(52,152,219,0.3), rgba(52,152,219,0.0));
+    -fx-fill: linear-gradient(to top left, rgba(39,174,96,0.3), rgba(39,174,96,0.0));
 }
 
 /* Chữ Welcome */
@@ -52,22 +82,22 @@
     -fx-cursor: hand;
 }
 .nav-button:hover {
-    -fx-text-fill: #2980b9;
+    -fx-text-fill: #27ae60;
 }
 
 /* ==== NÚT BẤM CHÍNH ==== */
 /* 1. Nút Sign Up (Màu xanh, bo tròn) */
 .btn-filled {
-    -fx-background-color: #2980b9;
+    -fx-background-color: #27ae60;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-font-size: 14px;
     -fx-background-radius: 25; /* Bo tròn cực mạnh giống viên thuốc */
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(41,128,185,0.4), 10, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, rgba(39,174,96,0.4), 10, 0, 0, 4);
 }
 .btn-filled:hover {
-    -fx-background-color: #1f618d; /* Đổi màu khi hover */
+    -fx-background-color: #2ecc71; /* Đổi màu khi hover */
     -fx-translate-y: -2; /* Hiệu ứng nhấc lên nhẹ */
 }
 .btn-filled:pressed {
@@ -77,9 +107,9 @@
 /* 2. Nút Sign In (Viền outline, nền trong) */
 .btn-outline {
     -fx-background-color: transparent;
-    -fx-border-color: #2980b9;
+    -fx-border-color: #27ae60;
     -fx-border-width: 2px;
-    -fx-text-fill: #2980b9;
+    -fx-text-fill: #27ae60;
     -fx-font-weight: bold;
     -fx-font-size: 14px;
     -fx-border-radius: 25;
@@ -87,5 +117,141 @@
     -fx-cursor: hand;
 }
 .btn-outline:hover {
-    -fx-background-color: rgba(41,128,185,0.1); /* Nền mờ khi hover */
+    -fx-background-color: rgba(39,174,96,0.1); /* Nền mờ khi hover */
+}
+
+/* ==== SIDEBAR BUTTONS ==== */
+.sidebar-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #5E8973;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 8;
+}
+.sidebar-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-text-fill: white;
+}
+.sidebar-btn-active {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: white;
+}
+
+/* ==== TABLE VIEW ==== */
+.table-view {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #e0e0e0;
+}
+.table-view .column-header-background {
+    -fx-background-color: #0D3A26;
+    -fx-background-radius: 8 8 0 0;
+}
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-size: 40px;
+}
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+.table-row-cell {
+    -fx-cell-size: 35px;
+}
+.table-row-cell:hover {
+    -fx-background-color: rgba(39, 174, 96, 0.1);
+}
+.table-row-cell:selected {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+}
+
+/* ==== LIST VIEW ==== */
+.list-view {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #e0e0e0;
+}
+.list-cell:hover {
+    -fx-background-color: rgba(39, 174, 96, 0.1);
+}
+.list-cell:selected {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+}
+
+/* ==== SPINNER (Dùng cho giờ phút) ==== */
+.spinner {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1px;
+}
+.spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-alignment: CENTER;
+}
+.spinner .increment-arrow-button, .spinner .decrement-arrow-button {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+.spinner:focused {
+    -fx-border-color: #27ae60;
+    -fx-border-width: 2px;
+}
+
+/* ==== DATE PICKER ==== */
+.date-picker {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #bdc3c7;
+}
+.date-picker .text-field {
+    -fx-background-color: transparent;
+}
+.date-picker .button {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+.date-picker:focused {
+    -fx-border-color: #27ae60;
+}
+
+/* ==== COMBO BOX (Nâng cấp) ==== */
+.combo-box {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #bdc3c7;
+    -fx-padding: 0; /* Giảm padding để cell chiếm trọn không gian */
+}
+.combo-box:hover, .combo-box:focused {
+    -fx-border-color: #27ae60;
+}
+.combo-box .cell {
+    -fx-background-radius: 7; /* Nhỏ hơn 1px để không bị tràn viền */
+    -fx-text-fill: #0D3A26;
+    -fx-font-weight: bold;
+    -fx-padding: 8 12;
+}
+.combo-box .list-view {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
+}
+.combo-box .list-cell {
+    -fx-text-fill: #0D3A26;
+    -fx-padding: 8 12;
+}
+.combo-box .list-cell:hover {
+    -fx-background-color: rgba(39, 174, 96, 0.1);
+}
+.combo-box .list-cell:selected {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
 }

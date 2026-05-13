@@ -34,9 +34,15 @@ public class WelcomeController {
             Parent root = loader.load();
 
             // Cập nhật Scene
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, 900, 600);
             stage.setScene(scene);
             stage.setTitle("Auction System - Register");
+
+            // Căn giữa
+            javafx.geometry.Rectangle2D bounds = javafx.stage.Screen.getPrimary().getVisualBounds();
+            stage.setX((bounds.getWidth() - 900) / 2);
+            stage.setY((bounds.getHeight() - 600) / 2);
+            
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();

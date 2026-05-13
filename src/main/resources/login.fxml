@@ -18,7 +18,7 @@
     <HBox maxWidth="750" maxHeight="450" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 10);">
 
         <!-- Nửa trái: Ảnh minh họa (hoặc gradient/họa tiết sóng) -->
-        <VBox prefWidth="300" alignment="CENTER" spacing="15" style="-fx-background-color: linear-gradient(to bottom, #2980b9, #6dd5ed); -fx-background-radius: 15 0 0 15; -fx-padding: 30;">
+        <VBox prefWidth="300" alignment="CENTER" spacing="15" style="-fx-background-color: linear-gradient(to bottom, #0D3A26, #1E6646); -fx-background-radius: 15 0 0 15; -fx-padding: 30;">
             <Text text="Welcome Back" style="-fx-fill: white; -fx-font-size: 32px; -fx-font-weight: bold; -fx-text-alignment: CENTER;" wrappingWidth="200"/>
             <Text text="Log in to access your auctions and bids." style="-fx-fill: white; -fx-font-size: 14px; -fx-text-alignment: CENTER;" wrappingWidth="200"/>
         </VBox>
@@ -53,7 +53,7 @@
 
             <HBox alignment="CENTER" style="-fx-padding: 10 0 0 0;">
                 <Label text="Don't have an account? " style="-fx-text-fill: #7f8c8d;"/>
-                <Hyperlink text="Sign Up" onAction="#switchToRegister" style="-fx-text-fill: #2980b9; -fx-font-weight: bold; -fx-padding: 0;"/>
+                <Hyperlink text="Sign Up" onAction="#switchToRegister" style="-fx-text-fill: #27ae60; -fx-font-weight: bold; -fx-padding: 0;"/>
             </HBox>
         </VBox>
     </HBox>

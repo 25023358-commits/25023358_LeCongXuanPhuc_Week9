@@ -16,17 +16,17 @@ public class AuthServiceTest {
 
     @Test
     void testRegisterUser() {
-        Bidder bidder = new Bidder("1", "testuser", 100.0); // Tạo Bidder với ID, username và balance
-        boolean result = authService.register(bidder);
+        String uniqueUser = "testuser_" + System.currentTimeMillis();
+        boolean result = authService.register(uniqueUser, "test@email.com", "password", "BIDDER");
         assertTrue(result);
     }
 
     @Test
     void testLoginUser() {
-        Bidder bidder = new Bidder("1", "testuser", 100.0);
-        authService.register(bidder);
-        User result = authService.login("testuser", "password");
+        String uniqueUser = "loginuser_" + System.currentTimeMillis();
+        authService.register(uniqueUser, "test@email.com", "password", "BIDDER");
+        User result = authService.login(uniqueUser, "password");
         assertNotNull(result);
-        assertEquals("testuser", result.getUsername());
+        assertEquals(uniqueUser, result.getUsername());
     }
 }

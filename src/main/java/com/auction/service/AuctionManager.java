@@ -56,6 +56,10 @@ public class AuctionManager {
         bidders.put(bidder.getId(), bidder);
     }
 
+    public Bidder getBidder(String bidderId) {
+        return bidders.get(bidderId);
+    }
+
     public void addObserver(BidObserver observer) {
         notificationService.addObserver(observer);
     }

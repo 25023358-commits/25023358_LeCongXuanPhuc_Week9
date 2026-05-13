@@ -52,21 +52,20 @@ public class BiddingService {
         }
 
         // Kiểm tra chống sniping và gia hạn nếu cần
-        if (!antiSniping.checkAndExtend(itemId)) {
+        int snipingResult = antiSniping.checkAndExtend(itemId);
+        if (snipingResult == -1) {
             System.out.println("Auction ended for " + itemId + "! Cannot bid.");
             return false;
-        } else {
-            // Cập nhật lại endTime của item nếu bị gia hạn thực sự
+        } else if (snipingResult == 1) {
+            // Gia hạn thời gian kết thúc của item
             long rem = antiSniping.getRemainingSeconds(itemId);
             java.time.LocalDateTime newEnd = java.time.LocalDateTime.now().plusSeconds(rem);
-            
-            // Chỉ lưu vào DB nếu thời gian mới xa hơn thời gian cũ đáng kể (tránh sai số mili giây)
-            if (newEnd.isAfter(item.getEndTime().plusSeconds(1))) {
-                item.setEndTime(newEnd);
-                try {
-                    itemDAO.save(item); // Lưu cập nhật thời gian vào DB
-                } catch (SQLException ignored) {}
-            }
+            item.setEndTime(newEnd);
+            try {
+                itemDAO.save(item); // Lưu cập nhật thời gian vào DB
+                // Gửi thông báo gia hạn cho các Client
+                notificationService.notifyExtension(itemId, rem);
+            } catch (SQLException ignored) {}
         }
 
         synchronized (item) {

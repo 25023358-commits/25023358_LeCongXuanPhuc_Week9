@@ -109,25 +109,31 @@ public class LoginController {
     private void navigateToAuctionDashboard(User user) {
         try {
             // Kiểm tra resource có tồn tại không
-            java.net.URL fxmlLocation = getClass().getResource("/auction.fxml");
+            java.net.URL fxmlLocation = getClass().getResource("/main-layout.fxml");
             if (fxmlLocation == null) {
-                throw new java.io.FileNotFoundException("Could not find auction.fxml in resources.");
+                throw new java.io.FileNotFoundException("Could not find main-layout.fxml in resources.");
             }
 
             FXMLLoader loader = new FXMLLoader(fxmlLocation);
             Parent root = loader.load();
 
-            AuctionController controller = loader.getController();
-            controller.setConnection(connection);
-            controller.setCurrentUser(user);
-            controller.startMessageListener(); // Bắt đầu lắng nghe tin nhắn từ Server
+            MainLayoutController controller = loader.getController();
+            controller.setConnectionAndUser(connection, user);
             
             // Tải dữ liệu ban đầu
-            fetchInitialItems(controller);
+            fetchInitialItems();
 
             Stage stage = (Stage) loginButton.getScene().getWindow();
             stage.setTitle("Live Auction System - User: " + user.getUsername());
-            stage.setScene(new Scene(root, 900, 600));
+            Scene scene = new Scene(root, 1100, 750); // Thống nhất size dashboard
+            stage.setScene(scene);
+            
+            // Căn giữa cửa sổ khi đổi size
+            javafx.geometry.Rectangle2D bounds = javafx.stage.Screen.getPrimary().getVisualBounds();
+            stage.setX((bounds.getWidth() - 1100) / 2);
+            stage.setY((bounds.getHeight() - 750) / 2);
+            
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
             Platform.runLater(() -> {
@@ -137,7 +143,7 @@ public class LoginController {
         }
     }
     
-    private void fetchInitialItems(AuctionController controller) {
+    private void fetchInitialItems() {
          new Thread(() -> {
              try {
                 Message req = new Message("GET_ITEMS", "");
@@ -156,9 +162,14 @@ public class LoginController {
             Parent registerRoot = loader.load();
 
             Stage stage = (Stage) loginButton.getScene().getWindow();
-            Scene scene = new Scene(registerRoot);
+            Scene scene = new Scene(registerRoot, 900, 600); // Thống nhất size register
             stage.setScene(scene);
             stage.setTitle("Create New Account");
+
+            // Căn giữa
+            javafx.geometry.Rectangle2D bounds = javafx.stage.Screen.getPrimary().getVisualBounds();
+            stage.setX((bounds.getWidth() - 900) / 2);
+            stage.setY((bounds.getHeight() - 600) / 2);
 
         } catch (IOException e) {
             System.err.println("Error: Could not load registration screen: " + e.getMessage());

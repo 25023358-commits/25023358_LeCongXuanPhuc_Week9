@@ -5,71 +5,80 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 
-<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.CreateItemController"
-      spacing="20" style="-fx-padding: 30; -fx-background-color: #f4f4f9;">
+<VBox stylesheets="@welcome-style.css" 
+      xmlns="http://javafx.com/javafx/17" 
+      xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.auction.controller.CreateItemController"
+      spacing="25" 
+      style="-fx-padding: 35 40; -fx-background-color: #F4F7F6; -fx-background-radius: 20; -fx-border-radius: 20; -fx-border-color: #0D3A26; -fx-border-width: 1;">
 
-    <Label text="Create a New Auction Item" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+    <!-- Header -->
+    <VBox spacing="5" alignment="CENTER">
+        <Label text="Create a New Auction Item" style="-fx-font-size: 26px; -fx-font-weight: 800; -fx-text-fill: #0D3A26;"/>
+        <Label text="Fill in the details below to start your auction" style="-fx-font-size: 14px; -fx-text-fill: #5E8973;"/>
+    </VBox>
 
-    <GridPane hgap="15" vgap="15">
+    <GridPane hgap="20" vgap="18">
         <columnConstraints>
-            <ColumnConstraints hgrow="NEVER" minWidth="120"/>
+            <ColumnConstraints hgrow="NEVER" minWidth="130" halignment="RIGHT"/>
             <ColumnConstraints hgrow="ALWAYS"/>
         </columnConstraints>
 
         <!-- Tên sản phẩm -->
-        <Label text="Item Name:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label text="Item Name:" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
         <TextField fx:id="nameField" promptText="e.g., Macbook Pro M3" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
         <!-- Mô tả -->
-        <Label text="Description:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextArea fx:id="descriptionArea" promptText="Provide a detailed description of the item" prefHeight="100" wrapText="true" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Description:" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextArea fx:id="descriptionArea" promptText="Provide a detailed description of the item" prefHeight="90" wrapText="true" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
         <!-- Giá khởi điểm -->
-        <Label text="Starting Price ($):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <TextField fx:id="priceField" promptText="e.g., 1500.0" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Starting Price ($):" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="priceField" promptText="e.g., 150.00" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
         <!-- Thời gian bắt đầu -->
-        <Label text="Start Time:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <DatePicker fx:id="startDatePicker" promptText="Auction start date" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Label text="Start Time:" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="3" GridPane.columnIndex="1">
+            <DatePicker fx:id="startDatePicker" promptText="Date" style="-fx-pref-width: 140;"/>
+            <Spinner fx:id="startHourSpinner" editable="true" style="-fx-pref-width: 75;"/>
+            <Label text=":" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;"/>
+            <Spinner fx:id="startMinuteSpinner" editable="true" style="-fx-pref-width: 75;"/>
+        </HBox>
 
         <!-- Thời gian kết thúc -->
-        <Label text="End Time:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-        <DatePicker fx:id="endDatePicker" promptText="Auction end date" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <Label text="End Time:" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="4" GridPane.columnIndex="1">
+            <DatePicker fx:id="endDatePicker" promptText="Date" style="-fx-pref-width: 140;"/>
+            <Spinner fx:id="endHourSpinner" editable="true" style="-fx-pref-width: 75;"/>
+            <Label text=":" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;"/>
+            <Spinner fx:id="endMinuteSpinner" editable="true" style="-fx-pref-width: 75;"/>
+        </HBox>
 
         <!-- Loại sản phẩm -->
-        <Label text="Category:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="categoryComboBox" promptText="Select a category" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+        <Label text="Category:" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="categoryComboBox" promptText="Select a category" 
+                  style="-fx-pref-width: 250;" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
 
-        <!-- Các trường đặc thù (sẽ hiện/ẩn bằng code) -->
-        <VBox fx:id="electronicsPane" spacing="15" managed="false" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="1">
-            <Label text="Warranty (months):" style="-fx-font-weight: bold;"/>
+        <!-- Các trường đặc thù -->
+        <VBox fx:id="electronicsPane" spacing="10" managed="false" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="1"
+              style="-fx-padding: 15; -fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #bdc3c7; -fx-border-radius: 10;">
+            <Label text="Warranty (months):" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;"/>
             <TextField fx:id="warrantyField" promptText="e.g., 12"/>
         </VBox>
 
-        <VBox fx:id="artPane" spacing="15" managed="false" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="1">
-            <Label text="Artist Name:" style="-fx-font-weight: bold;"/>
+        <VBox fx:id="artPane" spacing="10" managed="false" visible="false" GridPane.rowIndex="6" GridPane.columnIndex="1"
+              style="-fx-padding: 15; -fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #bdc3c7; -fx-border-radius: 10;">
+            <Label text="Artist Name:" style="-fx-font-weight: bold; -fx-text-fill: #0D3A26;"/>
             <TextField fx:id="artistField" promptText="e.g., Leonardo da Vinci"/>
         </VBox>
-
-        <columnConstraints>
-            <ColumnConstraints/>
-            <ColumnConstraints/>
-        </columnConstraints>
-        <rowConstraints>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-        </rowConstraints>
     </GridPane>
 
-    <HBox alignment="CENTER_RIGHT" spacing="15" style="-fx-padding: 20 0 0 0;">
-        <Label fx:id="messageLabel" textFill="RED"/>
-        <Button text="Cancel" onAction="#handleCancel"/>
-        <Button text="Create Item" onAction="#handleCreateItem" styleClass="btn-filled"/>
+    <!-- Footer / Buttons -->
+    <HBox alignment="CENTER_RIGHT" spacing="15" style="-fx-padding: 10 0 0 0;">
+        <Label fx:id="messageLabel" style="-fx-font-weight: bold;"/>
+        <Pane HBox.hgrow="ALWAYS" />
+        <Button text="Cancel" onAction="#handleCancel" styleClass="btn-outline" prefWidth="120"/>
+        <Button text="Create Item" onAction="#handleCreateItem" styleClass="btn-filled" prefWidth="150"/>
     </HBox>
 
 </VBox>

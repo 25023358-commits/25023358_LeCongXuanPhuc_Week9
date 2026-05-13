@@ -41,6 +41,10 @@ public class RealtimeNotifier {
             }
         }
     }
+    public void notifyExtension(String itemId, long remainingSeconds) {
+        String json = String.format("{\"itemId\":\"%s\",\"remainingSeconds\":%d}", itemId, remainingSeconds);
+        com.auction.server.AuctionServer.broadcast(new com.auction.entity.Message("ANTI_SNIPING_TRIGGERED", json));
+    }
 
     // Advanced: Đếm ngược thời gian cho item (chạy nền)
     public void startCountdown(String itemId, int seconds, Runnable onEnd) {

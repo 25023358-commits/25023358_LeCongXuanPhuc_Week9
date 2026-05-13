@@ -12,35 +12,36 @@ public class AuctionClient extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         primaryStage = stage;
+        // Thiết lập kích thước tối thiểu để không bị vỡ giao diện
+        primaryStage.setMinWidth(400);
+        primaryStage.setMinHeight(400);
         showWelcome();
     }
 
     public static void showWelcome() throws Exception {
         FXMLLoader loader = new FXMLLoader(AuctionClient.class.getResource("/welcome.fxml"));
         Parent root = loader.load();
-        // Set kích thước cố định cho màn hình Welcome (900x600)
-        Scene scene = new Scene(root, 900, 600);
-        primaryStage.setTitle("Welcome to Auction System");
+        Scene scene = new Scene(root, 1000, 650);
+        primaryStage.setTitle("Welcome to Auction Exchange");
         primaryStage.setScene(scene);
         primaryStage.show();
+        centerWindow();
     }
 
     public static void showLogin() throws Exception {
         FXMLLoader loader = new FXMLLoader(AuctionClient.class.getResource("/login.fxml"));
         Parent root = loader.load();
-        Scene scene = new Scene(root, 350, 300);
+        Scene scene = new Scene(root, 900, 600); // Tăng size login cho cân đối
         primaryStage.setTitle("Auction Client - Login");
         primaryStage.setScene(scene);
         primaryStage.show();
+        centerWindow();
     }
 
-    public static void showBidding() throws Exception {
-        FXMLLoader loader = new FXMLLoader(AuctionClient.class.getResource("/bidding.fxml"));
-        Parent root = loader.load();
-        Scene scene = new Scene(root, 800, 600);
-        primaryStage.setTitle("Auction Client - Bidding Dashboard");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+    private static void centerWindow() {
+        javafx.geometry.Rectangle2D primScreenBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
+        primaryStage.setX((primScreenBounds.getWidth() - primaryStage.getWidth()) / 2);
+        primaryStage.setY((primScreenBounds.getHeight() - primaryStage.getHeight()) / 2);
     }
     
     public static Stage getPrimaryStage() {

@@ -116,6 +116,7 @@ public class AuctionServer {
                 case "REGISTER":           handleRegister(msg); break;
                 case "GET_ITEMS":          handleListItems(); break;
                 case "CREATE_ITEM":        handleCreateItem(msg); break;
+                case "UPDATE_ITEM":        handleUpdateItem(msg); break;
                 case "BID":                handleBid(msg); break;
                 case "DELETE_ITEM":        handleDeleteItem(msg); break;
                 case "REGISTER_AUTO_BID":  handleRegisterAutoBid(msg); break;
@@ -123,6 +124,10 @@ public class AuctionServer {
                 case "GET_ANALYTICS":      handleGetAnalytics(msg); break;
                 case "GET_SELLER_ITEMS":   handleGetSellerItems(msg); break;
                 case "GET_ITEM_DETAILS":   handleGetItemDetails(msg); break;
+                case "TOP_UP":             handleTopUp(msg); break;
+                case "PAY_ITEM":           handlePayItem(msg); break;
+                case "GET_ALL_USERS":      handleGetAllUsers(); break;
+                case "DELETE_USER":        handleDeleteUser(msg); break;
                 case "LOGOUT":             handleLogout(); break;
             }
         }
@@ -178,6 +183,20 @@ public class AuctionServer {
             }
         }
 
+        private void handleUpdateItem(Message msg) throws IOException {
+            try {
+                Item updatedItem = objectMapper.readValue(msg.getData(), Item.class);
+                itemDAO.save(updatedItem); // save handles update if ID exists
+                auctionManager.addItem(updatedItem); // Overwrite in activeAuctions
+                out.println(objectMapper.writeValueAsString(
+                        new Message("UPDATE_ITEM_SUCCESS", "Item updated.")));
+                broadcast(new Message("ITEM_STATUS_CHANGED", objectMapper.writeValueAsString(updatedItem)));
+            } catch (Exception e) {
+                out.println(objectMapper.writeValueAsString(
+                        new Message("UPDATE_ITEM_FAILED", e.getMessage())));
+            }
+        }
+
         private void handleListItems() throws IOException {
             try {
                 List<Item> items = itemDAO.findAll();
@@ -226,6 +245,30 @@ public class AuctionServer {
                 broadcast(new Message("ITEM_REMOVED", itemId));
                 out.println(objectMapper.writeValueAsString(
                         new Message("DELETE_SUCCESS", itemId)));
+            } catch (Exception e) {
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
+            }
+        }
+
+        private void handleGetAllUsers() {
+            try {
+                List<UserDAO.UserRecord> users = userDAO.findAll();
+                out.println(objectMapper.writeValueAsString(
+                        new Message("ALL_USERS", objectMapper.writeValueAsString(users))));
+            } catch (Exception e) {
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
+            }
+        }
+
+        private void handleDeleteUser(Message msg) {
+            try {
+                String userId = msg.getData();
+                userDAO.delete(userId);
+                // Broadcast if necessary, or just respond
+                out.println(objectMapper.writeValueAsString(
+                        new Message("DELETE_USER_SUCCESS", userId)));
             } catch (Exception e) {
                 try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
                 catch (Exception ignored) {}
@@ -358,6 +401,93 @@ public class AuctionServer {
 
                 out.println(objectMapper.writeValueAsString(
                         new Message("ITEM_DETAILS", objectMapper.writeValueAsString(details))));
+            } catch (Exception e) {
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
+            }
+        }
+
+        // ===== NẠP TIỀN (TOP UP) =====
+        private void handleTopUp(Message msg) {
+            try {
+                Map<String, Object> req = objectMapper.readValue(msg.getData(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+                String userId = (String) req.get("userId");
+                double amount = ((Number) req.get("amount")).doubleValue();
+
+                UserDAO.UserRecord rec = userDAO.findById(userId);
+                if (rec != null) {
+                    double newBalance = rec.balance + amount;
+                    userDAO.updateBalance(userId, newBalance);
+                    
+                    // Cập nhật Cache trên Server để Bid không bị lỗi Insufficient Balance
+                    Bidder cachedBidder = auctionManager.getBidder(userId);
+                    if (cachedBidder != null) {
+                        cachedBidder.setBalance(newBalance);
+                    }
+                    
+                    Map<String, Object> resp = new HashMap<>();
+                    resp.put("newBalance", newBalance);
+                    out.println(objectMapper.writeValueAsString(new Message("TOP_UP_SUCCESS", objectMapper.writeValueAsString(resp))));
+                } else {
+                    out.println(objectMapper.writeValueAsString(new Message("ERROR", "User not found for top-up")));
+                }
+            } catch (Exception e) {
+                try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
+                catch (Exception ignored) {}
+            }
+        }
+        
+        // ===== THANH TOÁN (PAY_ITEM) =====
+        private void handlePayItem(Message msg) {
+            try {
+                String itemId = msg.getData();
+                Item item = itemDAO.findById(itemId);
+                
+                if (item == null || item.getStatus() != Item.Status.FINISHED) {
+                    out.println(objectMapper.writeValueAsString(new Message("ERROR", "Invalid item or not finished yet.")));
+                    return;
+                }
+                
+                String winnerId = item.getHighestBidderId();
+                if (winnerId == null || !winnerId.equals(currentUserId)) {
+                    out.println(objectMapper.writeValueAsString(new Message("ERROR", "You are not the winner.")));
+                    return;
+                }
+
+                UserDAO.UserRecord winner = userDAO.findById(winnerId);
+                double amountToPay = item.getCurrentHighestBid();
+                
+                if (winner.balance >= amountToPay) {
+                    // Trừ tiền
+                    double newBalance = winner.balance - amountToPay;
+                    userDAO.updateBalance(winnerId, newBalance);
+                    
+                    // Cập nhật RAM
+                    Bidder cachedBidder = auctionManager.getBidder(winnerId);
+                    if (cachedBidder != null) {
+                        cachedBidder.setBalance(newBalance);
+                    }
+                    
+                    // Chuyển trạng thái Item thành PAID
+                    item.setStatus(Item.Status.PAID);
+                    itemDAO.save(item);
+                    auctionManager.addItem(item);
+                    
+                    // Báo cho user số dư mới thông qua TOP_UP_SUCCESS (tái sử dụng UI cập nhật)
+                    Map<String, Object> resp = new HashMap<>();
+                    resp.put("newBalance", newBalance);
+                    out.println(objectMapper.writeValueAsString(new Message("TOP_UP_SUCCESS", objectMapper.writeValueAsString(resp))));
+                    
+                    // Broadcast cập nhật Item
+                    broadcast(new Message("ITEM_STATUS_CHANGED", objectMapper.writeValueAsString(item)));
+                    out.println(objectMapper.writeValueAsString(new Message("NOTIFY", "Payment successful! Item is now PAID.")));
+                } else {
+                    out.println(objectMapper.writeValueAsString(new Message("ERROR", "Insufficient balance to pay for this item!")));
+                    // Nếu muốn CANCELED luôn:
+                    // item.setStatus(Item.Status.CANCELED);
+                    // itemDAO.save(item);
+                    // broadcast(new Message("ITEM_STATUS_CHANGED", objectMapper.writeValueAsString(item)));
+                }
             } catch (Exception e) {
                 try { out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage()))); }
                 catch (Exception ignored) {}

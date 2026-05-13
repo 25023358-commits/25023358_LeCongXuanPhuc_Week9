@@ -6,6 +6,7 @@ import com.auction.service.AuctionManager;
 import com.auction.entity.Bidder;
 import com.auction.entity.Electronics;
 import com.auction.entity.Item;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,14 +20,14 @@ public class AuctionManagerTest {
 
     @Test
     void testAddItem() {
-        Item item = new Electronics("I1", "Laptop", 1000.0, 12);
+        Item item = new Electronics("I1", "Laptop", "A laptop", 1000.0, LocalDateTime.now(), LocalDateTime.now().plusDays(1), 12);
         manager.addItem(item);
         assertEquals(item, manager.getItem("I1"));
     }
 
     @Test
     void testPlaceBid() {
-        Item item = new Electronics("I1", "Laptop", 1000.0, 12);
+        Item item = new Electronics("I1", "Laptop", "A laptop", 1000.0, LocalDateTime.now(), LocalDateTime.now().plusDays(1), 12);
         manager.addItem(item);
         Bidder bidder = new Bidder("B1", "bidder", 2000.0);
         manager.addBidder(bidder);

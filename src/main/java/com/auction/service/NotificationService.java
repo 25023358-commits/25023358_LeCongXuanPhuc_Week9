@@ -35,4 +35,8 @@ public class NotificationService {
     public void notifyRealtime(String itemId, double bidAmount, String bidderId) {
         realtime.notifyRealtime(itemId, bidAmount, bidderId);
     }
+
+    public void notifyExtension(String itemId, long remainingSeconds) {
+        realtime.notifyExtension(itemId, remainingSeconds);
+    }
 }
