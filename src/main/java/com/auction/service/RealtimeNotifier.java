@@ -34,8 +34,11 @@ public class RealtimeNotifier {
         if (watching != null) {
             for (Bidder b : watching) {
                 // Gửi thông báo ngay lập tức
-                String msg = String.format("[REALTIME] %s: $%.2f by %s", itemId, price, bidderName);
-                System.out.println("📡 -> " + b.getUsername() + ": " + msg);
+                String text = String.format("[REALTIME] %s: $%.2f by %s", itemId, price, bidderName);
+                System.out.println("📡 -> " + b.getUsername() + ": " + text);
+                
+                // Gửi qua socket cho tất cả clients
+                com.auction.server.AuctionServer.broadcast(new com.auction.entity.Message("NOTIFY", text));
             }
         }
     }

@@ -13,6 +13,7 @@ public class DBHelper {
     }
 
     public static void initializeDatabase() {
+        System.out.println("Database path: " + new java.io.File("auction.db").getAbsolutePath());
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
             // Create tables
             String createUsersTable = "CREATE TABLE IF NOT EXISTS users (" +
@@ -25,6 +26,10 @@ public class DBHelper {
                     "created_at TEXT DEFAULT (datetime('now'))" +
                     ")";
             stmt.execute(createUsersTable);
+            
+            // Ép buộc cập nhật cấu trúc: Xóa bảng cũ và tạo lại với đầy đủ cột mới
+            // (Chỉ nên làm việc này trong giai đoạn phát triển để cập nhật schema)
+            stmt.execute("DROP TABLE IF EXISTS items");
 
             String createItemsTable = "CREATE TABLE IF NOT EXISTS items (" +
                     "id TEXT PRIMARY KEY," +

@@ -114,14 +114,14 @@ public class CreateItemController {
             // Dùng ItemFactory để tạo đối tượng Item
             if (category.equals("Electronics")) {
                 int warranty = Integer.parseInt(warrantyField.getText());
-                newItem = ItemFactory.createItem("electronics", itemId, name, description, price, startTime, endTime, warranty);
+                newItem = ItemFactory.createItem("electronics", itemId, name, description, price, startTime, endTime, currentSeller.getId(), warranty);
             } else if (category.equals("Art")) {
                 String artist = artistField.getText();
                 if (artist.isEmpty()) {
                      messageLabel.setText("Please enter artist name.");
                      return;
                 }
-                newItem = ItemFactory.createItem("art", itemId, name, description, price, startTime, endTime, artist);
+                newItem = ItemFactory.createItem("art", itemId, name, description, price, startTime, endTime, currentSeller.getId(), artist);
             }
             
             // Tạm thời gắn sellerId (chưa có trường trong class Item, có thể dùng highestBidderId làm workaround hoặc cập nhật Item class)

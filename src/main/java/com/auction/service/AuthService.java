@@ -59,8 +59,8 @@ public class AuthService {
             // Hash mật khẩu bằng thư viện BCrypt
             String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
             
-            // Khởi tạo số dư tài khoản (chỉ Bidder mới có tiền khởi điểm)
-            double balance = "BIDDER".equals(role) ? 1000.0 : 0.0;
+            // Khởi tạo số dư tài khoản (Tăng vốn khởi điểm lên 10000)
+            double balance = "BIDDER".equals(role) ? 10000.0 : 0.0;
 
             // Lưu vào database thông qua DAO
             userDAO.insert(id, username, email, hashedPassword, role, balance);

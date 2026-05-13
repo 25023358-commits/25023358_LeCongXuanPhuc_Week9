@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,8 @@ import java.util.List;
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,
-    property = "type" // Dựa vào trường 'type' trong JSON để quyết định
+    property = "type",
+    visible = true
 )
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Electronics.class, name = "ELECTRONICS"),
@@ -41,7 +41,8 @@ public abstract class Item extends Entity {
     private LocalDateTime endTime;
     
     private Status status;
-    private String type; // Thêm trường type để Jackson sử dụng
+    private String type; 
+    private String sellerId; 
 
     private transient List<AuctionObserver> observers = new ArrayList<>();
 
@@ -50,18 +51,19 @@ public abstract class Item extends Entity {
     }
 
     public Item(String id, String name, String description, double startingPrice,
-                LocalDateTime startTime, LocalDateTime endTime) {
+                LocalDateTime startTime, LocalDateTime endTime, String sellerId) {
         super(id);
         this.name = name;
         this.description = description;
         this.startingPrice = startingPrice;
-        this.currentHighestBid = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = Status.OPEN;
+        this.currentHighestBid = startingPrice;
+        this.sellerId = sellerId;
     }
 
-    // --- GETTERS/SETTERS ---
+    // Getters and Setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -89,15 +91,25 @@ public abstract class Item extends Entity {
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
 
-
-    public abstract void printInfo();
+    public String getSellerId() { return sellerId; }
+    public void setSellerId(String sellerId) { this.sellerId = sellerId; }
 
     public void addObserver(AuctionObserver observer) {
         if (observers == null) observers = new ArrayList<>();
-        if (!observers.contains(observer)) {
-            observers.add(observer);
-        }
+        observers.add(observer);
     }
+
+    public boolean updateHighestBid(double amount, String bidderId) {
+        if (amount > currentHighestBid) {
+            this.currentHighestBid = amount;
+            this.highestBidderId = bidderId;
+            notifyObservers("New highest bid for " + name + ": $" + amount + " by " + bidderId);
+            return true;
+        }
+        return false;
+    }
+
+    public abstract void printInfo();
 
     protected void notifyObservers(String message) {
         if (observers != null) {
@@ -107,17 +119,8 @@ public abstract class Item extends Entity {
         }
     }
 
-    public synchronized boolean updateHighestBid(double newBid, String bidderId) {
-        if (this.status != Status.RUNNING) {
-            notifyObservers("Bid rejected for " + name + ": Auction is not RUNNING.");
-            return false;
-        }
-        if (newBid > currentHighestBid) {
-            this.currentHighestBid = newBid;
-            this.highestBidderId = bidderId;
-            notifyObservers("New highest bid for " + name + ": $" + newBid + " by " + bidderId);
-            return true;
-        }
-        return false;
+    @Override
+    public String toString() {
+        return name + " (Current Bid: $" + currentHighestBid + ")";
     }
 }

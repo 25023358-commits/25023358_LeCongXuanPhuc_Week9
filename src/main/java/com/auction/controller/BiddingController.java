@@ -32,12 +32,28 @@ public class BiddingController {
         try {
             connection = new ClientConnection();
             priceChart.getData().add(series);
-            series.setName("Bid Price Over Time");
+            series.setName("Live Price");
 
-            // Poll for updates every 1 second
-            executor.scheduleAtFixedRate(this::updateChart, 0, 1, TimeUnit.SECONDS);
+            connection.setMessageListener(this::handleIncomingMessage);
         } catch (IOException e) {
             logger.severe("Error initializing connection: " + e.getMessage());
+        }
+    }
+
+    private void handleIncomingMessage(Message msg) {
+        if ("BID_UPDATE".equals(msg.getType())) {
+            try {
+                // Parse bid data from JSON
+                com.fasterxml.jackson.databind.JsonNode node = objectMapper.readTree(msg.getData());
+                double price = node.get("amount").asDouble();
+                
+                Platform.runLater(() -> {
+                    long time = (System.currentTimeMillis() - startTime) / 1000;
+                    series.getData().add(new XYChart.Data<>(time, price));
+                });
+            } catch (Exception e) {
+                logger.warning("Failed to parse bid update: " + e.getMessage());
+            }
         }
     }
 
@@ -45,22 +61,12 @@ public class BiddingController {
     private void placeBid() {
         try {
             double amount = Double.parseDouble(bidAmountField.getText());
-            Message bidMsg = new Message("BID", "{\"itemId\":\"itemId\",\"amount\":" + amount + "}");
+            // Replace with real item ID if available
+            Message bidMsg = new Message("BID", "{\"itemId\":\"item_123\",\"amount\":" + amount + "}");
             connection.sendMessage(bidMsg);
-            // Handle response if needed
         } catch (Exception e) {
             logger.severe("Error placing bid: " + e.getMessage());
         }
-    }
-
-    private void updateChart() {
-        // Simulate receiving bid updates
-        // In real app, receive from server
-        Platform.runLater(() -> {
-            long time = (System.currentTimeMillis() - startTime) / 1000;
-            double price = 1000 + Math.random() * 100; // Mock price
-            series.getData().add(new XYChart.Data<>(time, price));
-        });
     }
 
     @FXML

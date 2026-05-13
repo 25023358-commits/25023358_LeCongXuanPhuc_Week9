@@ -47,6 +47,14 @@ public class BiddingService {
         if (!antiSniping.checkAndExtend(itemId)) {
             System.out.println("Auction ended for " + itemId + "! Cannot bid.");
             return false;
+        } else {
+            // Cập nhật lại endTime của item nếu bị gia hạn
+            long rem = antiSniping.getRemainingSeconds(itemId);
+            LocalDateTime newEnd = LocalDateTime.now().plusSeconds(rem);
+            item.setEndTime(newEnd);
+            try {
+                itemDAO.save(item); // Lưu cập nhật thời gian vào DB
+            } catch (SQLException ignored) {}
         }
 
         synchronized (item) {

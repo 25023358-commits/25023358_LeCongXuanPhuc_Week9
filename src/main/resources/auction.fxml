@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
+<?import javafx.scene.chart.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.AuctionController"
             prefHeight="600" prefWidth="900" style="-fx-background-color: #f4f4f9;" stylesheets="@welcome-style.css">
@@ -17,20 +18,36 @@
             <Label text="Live Auctions" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
             <Region HBox.hgrow="ALWAYS"/> <!-- Đây là một cái đệm để đẩy nút sang phải -->
             <Button fx:id="createNewItemButton" text="+ Create New Item" onAction="#handleCreateNewItem" styleClass="btn-filled" visible="false" managed="false"/>
+            <Button fx:id="myItemsButton" text="My Items" onAction="#handleShowMyItems" styleClass="btn-outline" visible="false" managed="false"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="btn-outline" style="-fx-text-fill: #e74c3c; -fx-border-color: #e74c3c;"/>
         </HBox>
     </top>
 
-    <!-- Center: Bảng danh sách sản phẩm -->
     <center>
-        <TableView fx:id="itemTable">
-            <columns>
-                <TableColumn fx:id="nameColumn" text="Item Name" prefWidth="250"/>
-                <TableColumn fx:id="descriptionColumn" text="Description" prefWidth="300"/>
-                <TableColumn fx:id="priceColumn" text="Current Bid" prefWidth="120"/>
-                <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
-                <TableColumn fx:id="endTimeColumn" text="Ends In" prefWidth="120"/>
-            </columns>
-        </TableView>
+        <HBox spacing="10">
+            <TableView fx:id="itemTable" HBox.hgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="nameColumn" text="Item Name" prefWidth="200"/>
+                    <TableColumn fx:id="descriptionColumn" text="Description" prefWidth="200"/>
+                    <TableColumn fx:id="priceColumn" text="Current Bid" prefWidth="100"/>
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="80"/>
+                    <TableColumn fx:id="endTimeColumn" text="Ends In" prefWidth="120"/>
+                </columns>
+            </TableView>
+            <VBox fx:id="chartContainer" prefWidth="300" spacing="10" style="-fx-background-color: white; -fx-padding: 10;">
+                <Label text="Price History" style="-fx-font-weight: bold;"/>
+                <LineChart fx:id="priceChart" prefHeight="250" legendVisible="false">
+                    <xAxis>
+                        <CategoryAxis label="Time" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis label="Price ($)" />
+                    </yAxis>
+                </LineChart>
+                <Label text="Bid History" style="-fx-font-weight: bold;"/>
+                <ListView fx:id="bidHistoryList" prefHeight="150"/>
+            </VBox>
+        </HBox>
     </center>
 
     <!-- Bottom: Khu vực đặt giá và thông báo -->
@@ -44,6 +61,10 @@
             <HBox spacing="15" alignment="CENTER_LEFT">
                 <TextField fx:id="bidAmountField" promptText="Enter your bid amount" prefWidth="200"/>
                 <Button text="Place Bid" onAction="#handlePlaceBid" styleClass="btn-filled"/>
+                <Separator orientation="VERTICAL"/>
+                <TextField fx:id="maxBidField" promptText="Max Bid" prefWidth="100"/>
+                <TextField fx:id="incrementField" promptText="Step" prefWidth="80"/>
+                <Button text="Auto Bid" onAction="#handleAutoBid" styleClass="btn-outline"/>
                 <Label fx:id="bidMessageLabel" textFill="RED"/>
             </HBox>
             <ListView fx:id="notificationList" prefHeight="100"/>

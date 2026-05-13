@@ -23,21 +23,21 @@ public class ItemFactory {
      */
     public static Item createItem(String type, String id, String name, String description,
                                   double startingPrice, LocalDateTime startTime, LocalDateTime endTime,
-                                  Object... extraAttrs) {
+                                  String sellerId, Object... extraAttrs) {
         switch (type.toLowerCase()) {
             case "electronics":
                 if (extraAttrs.length == 0 || !(extraAttrs[0] instanceof Integer)) {
                     throw new IllegalArgumentException("Electronics item requires warranty months (Integer).");
                 }
                 int warrantyMonths = (Integer) extraAttrs[0];
-                return new Electronics(id, name, description, startingPrice, startTime, endTime, warrantyMonths);
+                return new Electronics(id, name, description, startingPrice, startTime, endTime, sellerId, warrantyMonths);
 
             case "art":
                 if (extraAttrs.length == 0 || !(extraAttrs[0] instanceof String)) {
                     throw new IllegalArgumentException("Art item requires artist name (String).");
                 }
                 String artistName = (String) extraAttrs[0];
-                return new Art(id, name, description, startingPrice, startTime, endTime, artistName);
+                return new Art(id, name, description, startingPrice, startTime, endTime, sellerId, artistName);
 
             default:
                 throw new IllegalArgumentException("Unknown item type: " + type);

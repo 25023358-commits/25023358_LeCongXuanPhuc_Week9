@@ -71,72 +71,82 @@ public class LoginController {
         String username = usernameField.getText();
         String password = passwordField.getText();
         
-        try {
-            LoginRequest req = new LoginRequest();
-            req.setUsername(username);
-            req.setPassword(password);
-            
-            Message msg = new Message("LOGIN", objectMapper.writeValueAsString(req));
-            connection.sendMessage(msg);
-            
-            Message response = connection.receiveMessage();
-            
-            if ("LOGIN_SUCCESS".equals(response.getType())) {
-                User loggedInUser = objectMapper.readValue(response.getData(), User.class);
+        // Chạy login trong thread riêng để tránh treo UI
+        new Thread(() -> {
+            try {
+                LoginRequest req = new LoginRequest();
+                req.setUsername(username);
+                req.setPassword(password);
                 
-                Platform.runLater(() -> {
-                    messageLabel.setTextFill(javafx.scene.paint.Color.GREEN);
-                    messageLabel.setText("Login successful. Loading dashboard...");
-                    navigateToAuctionDashboard(loggedInUser);
-                });
-            } else {
+                Message msg = new Message("LOGIN", objectMapper.writeValueAsString(req));
+                connection.sendMessage(msg);
+                
+                Message response = connection.receiveMessage();
+                
+                if ("LOGIN_SUCCESS".equals(response.getType())) {
+                    User loggedInUser = objectMapper.readValue(response.getData(), User.class);
+                    
+                    Platform.runLater(() -> {
+                        messageLabel.setTextFill(javafx.scene.paint.Color.GREEN);
+                        messageLabel.setText("Login successful. Loading dashboard...");
+                        navigateToAuctionDashboard(loggedInUser);
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                         messageLabel.setTextFill(javafx.scene.paint.Color.RED);
+                         messageLabel.setText("Login failed: " + response.getData());
+                    });
+                }
+            } catch (Exception e) {
                 Platform.runLater(() -> {
                      messageLabel.setTextFill(javafx.scene.paint.Color.RED);
-                     messageLabel.setText("Login failed: " + response.getData());
+                     messageLabel.setText("Error: " + e.getMessage());
                 });
             }
-        } catch (Exception e) {
-            Platform.runLater(() -> {
-                 messageLabel.setTextFill(javafx.scene.paint.Color.RED);
-                 messageLabel.setText("Error: " + e.getMessage());
-            });
-        }
+        }).start();
     }
 
     private void navigateToAuctionDashboard(User user) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/auction.fxml"));
+            // Kiểm tra resource có tồn tại không
+            java.net.URL fxmlLocation = getClass().getResource("/auction.fxml");
+            if (fxmlLocation == null) {
+                throw new java.io.FileNotFoundException("Could not find auction.fxml in resources.");
+            }
+
+            FXMLLoader loader = new FXMLLoader(fxmlLocation);
             Parent root = loader.load();
 
             AuctionController controller = loader.getController();
             controller.setConnection(connection);
             controller.setCurrentUser(user);
+            controller.startMessageListener(); // Bắt đầu lắng nghe tin nhắn từ Server
             
+            // Tải dữ liệu ban đầu
             fetchInitialItems(controller);
 
             Stage stage = (Stage) loginButton.getScene().getWindow();
             stage.setTitle("Live Auction System - User: " + user.getUsername());
             stage.setScene(new Scene(root, 900, 600));
         } catch (Exception e) {
-            System.err.println("Error loading dashboard: " + e.getMessage());
-            Platform.runLater(() -> messageLabel.setText("Error loading dashboard."));
+            e.printStackTrace();
+            Platform.runLater(() -> {
+                messageLabel.setTextFill(javafx.scene.paint.Color.RED);
+                messageLabel.setText("Error loading dashboard: " + e.getMessage());
+            });
         }
     }
     
     private void fetchInitialItems(AuctionController controller) {
-         try {
-            Message req = new Message("GET_ITEMS", "");
-            connection.sendMessage(req);
-            
-            Message response = connection.receiveMessage();
-            if ("ITEM_LIST".equals(response.getType())) {
-                List<Item> items = objectMapper.readValue(response.getData(), new TypeReference<List<Item>>(){});
-                ObservableList<Item> observableItems = FXCollections.observableArrayList(items);
-                controller.loadItems(observableItems);
+         new Thread(() -> {
+             try {
+                Message req = new Message("GET_ITEMS", "");
+                connection.sendMessage(req);
+                // Phản hồi sẽ được AuctionController lắng nghe và xử lý tự động
+            } catch (Exception e) {
+                 System.err.println("Could not request initial items: " + e.getMessage());
             }
-        } catch (Exception e) {
-             System.err.println("Could not fetch initial items: " + e.getMessage());
-        }
+         }).start();
     }
 
     @FXML

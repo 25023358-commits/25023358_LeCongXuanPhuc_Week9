@@ -68,8 +68,7 @@ public class ItemDAO {
                 stmt.setString(11, item.getId());
             } else {
                 stmt.setString(11, item.getId());
-                // Giả sử Item có sellerId, cần thêm getter
-                // stmt.setString(13, item.getSellerId());
+                stmt.setString(13, item.getSellerId());
             }
 
             stmt.executeUpdate();
@@ -107,6 +106,21 @@ public class ItemDAO {
         }
         return list;
     }
+
+    public List<Item> findBySeller(String sellerId) throws SQLException {
+        String sql = "SELECT * FROM items WHERE seller_id = ? ORDER BY created_at DESC";
+        List<Item> list = new ArrayList<>();
+
+        try (PreparedStatement stmt = DBHelper.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, sellerId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRowToItem(rs));
+                }
+            }
+        }
+        return list;
+    }
     // =========================================================
     // UPDATE — Cập nhật giá cao nhất và người đặt giá
     // =========================================================
@@ -124,7 +138,6 @@ public class ItemDAO {
         }
     }
 
-    
     // =========================================================
     // mapRowToItem — chuyển ResultSet → Item object
     // =========================================================
@@ -138,12 +151,13 @@ public class ItemDAO {
         String type = rs.getString("type");
 
         Item item;
+        String sellerId = rs.getString("seller_id");
         if ("ELECTRONICS".equals(type)) {
             int warranty = rs.getInt("warranty_months");
-            item = new Electronics(id, name, description, startingPrice, startTime, endTime, warranty);
+            item = new Electronics(id, name, description, startingPrice, startTime, endTime, sellerId, warranty);
         } else {
             String artist = rs.getString("artist_name");
-            item = new Art(id, name, description, startingPrice, startTime, endTime, artist);
+            item = new Art(id, name, description, startingPrice, startTime, endTime, sellerId, artist);
         }
 
         item.setCurrentHighestBid(rs.getDouble("current_bid"));
@@ -153,5 +167,13 @@ public class ItemDAO {
         return item;
     }
     
-    // Các hàm update và delete khác có thể giữ nguyên hoặc tích hợp vào hàm save()
+    public void delete(String id) throws SQLException {
+        String sql = "DELETE FROM items WHERE id = ?";
+        try (PreparedStatement stmt = DBHelper.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, id);
+            stmt.executeUpdate();
+        }
+    }
+    
+    // Các hàm update khác có thể tích hợp vào hàm save()
 }

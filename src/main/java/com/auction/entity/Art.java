@@ -12,10 +12,15 @@ public class Art extends Item {
     }
 
     public Art(String id, String name, String description, double startingPrice,
-               LocalDateTime startTime, LocalDateTime endTime, String artistName) {
-        super(id, name, description, startingPrice, startTime, endTime);
+               LocalDateTime startTime, LocalDateTime endTime, String sellerId, String artistName) {
+        super(id, name, description, startingPrice, startTime, endTime, sellerId);
         this.artistName = artistName;
         this.setType("ART");
+    }
+
+    public Art(String id, String name, String description, double startingPrice,
+               LocalDateTime startTime, LocalDateTime endTime, String artistName) {
+        this(id, name, description, startingPrice, startTime, endTime, null, artistName);
     }
 
     public String getArtistName() {

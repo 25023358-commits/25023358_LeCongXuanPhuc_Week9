@@ -12,10 +12,15 @@ public class Electronics extends Item {
     }
 
     public Electronics(String id, String name, String description, double startingPrice,
-                       LocalDateTime startTime, LocalDateTime endTime, int warrantyMonths) {
-        super(id, name, description, startingPrice, startTime, endTime);
+                       LocalDateTime startTime, LocalDateTime endTime, String sellerId, int warrantyMonths) {
+        super(id, name, description, startingPrice, startTime, endTime, sellerId);
         this.warrantyMonths = warrantyMonths;
         this.setType("ELECTRONICS");
+    }
+
+    public Electronics(String id, String name, String description, double startingPrice,
+                       LocalDateTime startTime, LocalDateTime endTime, int warrantyMonths) {
+        this(id, name, description, startingPrice, startTime, endTime, null, warrantyMonths);
     }
 
     public int getWarrantyMonths() {
