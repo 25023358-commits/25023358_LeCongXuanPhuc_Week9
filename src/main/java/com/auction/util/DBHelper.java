@@ -22,7 +22,7 @@ public class DBHelper {
                     "password TEXT NOT NULL," +
                     "role TEXT NOT NULL," +
                     "balance REAL DEFAULT 0.0," +
-                    "created_at INTEGER DEFAULT (strftime('%s','now'))" +
+                    "created_at TEXT DEFAULT (datetime('now'))" +
                     ")";
             stmt.execute(createUsersTable);
 

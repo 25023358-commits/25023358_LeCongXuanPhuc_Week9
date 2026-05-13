@@ -7,11 +7,7 @@ import java.util.List;
 import com.auction.entity.*;
 
 public class BidTransactionDAO {
-    private String status;
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
     public void saveBid(BidTransaction bid) {
         String sql = "INSERT INTO bids (id, item_id, bidder_id, bid_amount, timestamp, status) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBHelper.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -57,5 +53,40 @@ public class BidTransactionDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    // Lấy bid cao nhất — xác định winner khi phiên kết thúc
+    public BidTransaction getHighestBid(String itemId) {
+        String sql = "SELECT * FROM bids WHERE item_id = ? ORDER BY bid_amount DESC LIMIT 1";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, itemId);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                BidTransaction bid = new BidTransaction(
+                        itemId,
+                        rs.getString("bidder_id"),
+                        rs.getDouble("bid_amount")
+                );
+                bid.setStatus(rs.getString("status"));
+                return bid;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Đếm số bid — dùng cho BidAnalytics
+    public int countBids(String itemId) {
+        String sql = "SELECT COUNT(*) FROM bids WHERE item_id = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, itemId);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }
