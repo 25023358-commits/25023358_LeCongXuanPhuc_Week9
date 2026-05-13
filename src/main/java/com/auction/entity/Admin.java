@@ -2,6 +2,11 @@ package com.auction.entity;
 
 public class Admin extends User {
 
+    // Constructor không tham số cho Jackson
+    public Admin() {
+        super();
+    }
+
     public Admin(String id, String username) {
         super(id, username, "ADMIN");
     }
@@ -13,7 +18,6 @@ public class Admin extends User {
         System.out.println("Quyền hạn: Toàn quyền hệ thống (CRUD User & Item).");
     }
 
-    // Chức năng riêng của Admin
     public void banUser(String userId) {
         System.out.println("Đã khóa người dùng: " + userId);
     }

@@ -41,7 +41,7 @@
                 <Label text="Selected Item:" style="-fx-font-weight: bold;"/>
                 <Text fx:id="selectedItemText" text="No item selected" style="-fx-font-style: italic;"/>
             </HBox>
-            <HBox spacing="15" alignment="BASELINE">
+            <HBox spacing="15" alignment="CENTER_LEFT">
                 <TextField fx:id="bidAmountField" promptText="Enter your bid amount" prefWidth="200"/>
                 <Button text="Place Bid" onAction="#handlePlaceBid" styleClass="btn-filled"/>
                 <Label fx:id="bidMessageLabel" textFill="RED"/>

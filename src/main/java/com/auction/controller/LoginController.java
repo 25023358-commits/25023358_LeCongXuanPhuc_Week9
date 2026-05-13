@@ -1,8 +1,13 @@
 package com.auction.controller;
 
+import com.auction.entity.Item;
 import com.auction.entity.User;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,6 +21,7 @@ import com.auction.entity.LoginRequest;
 import com.auction.entity.Message;
 
 import java.io.IOException;
+import java.util.List;
 
 public class LoginController {
     @FXML
@@ -37,6 +43,8 @@ public class LoginController {
     public LoginController() {
         try {
             connection = new ClientConnection();
+            // Đăng ký module để ObjectMapper có thể xử lý LocalDateTime
+            objectMapper.registerModule(new JavaTimeModule());
         } catch (Exception e) {
             Platform.runLater(() -> messageLabel.setText("Error: Cannot connect to server."));
         }
@@ -74,7 +82,6 @@ public class LoginController {
             Message response = connection.receiveMessage();
             
             if ("LOGIN_SUCCESS".equals(response.getType())) {
-                // Deserialization của đối tượng User từ JSON
                 User loggedInUser = objectMapper.readValue(response.getData(), User.class);
                 
                 Platform.runLater(() -> {
@@ -103,7 +110,7 @@ public class LoginController {
 
             AuctionController controller = loader.getController();
             controller.setConnection(connection);
-            controller.setCurrentUser(user); // Truyền cả đối tượng User
+            controller.setCurrentUser(user);
             
             fetchInitialItems(controller);
 
@@ -123,8 +130,9 @@ public class LoginController {
             
             Message response = connection.receiveMessage();
             if ("ITEM_LIST".equals(response.getType())) {
-                System.out.println("Items fetched: " + response.getData());
-                // Logic để parse và load item sẽ được hoàn thiện sau khi đồng bộ entity
+                List<Item> items = objectMapper.readValue(response.getData(), new TypeReference<List<Item>>(){});
+                ObservableList<Item> observableItems = FXCollections.observableArrayList(items);
+                controller.loadItems(observableItems);
             }
         } catch (Exception e) {
              System.err.println("Could not fetch initial items: " + e.getMessage());

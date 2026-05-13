@@ -2,12 +2,15 @@ package com.auction.entity;
 
 public class Seller extends User {
 
-    public Seller(String id, String username) {
-        // Gán cứng role là "Seller" khi khởi tạo
-        super(id, username, "Seller");
+    // Constructor không tham số cho Jackson
+    public Seller() {
+        super();
     }
 
-    // Thực thi phương thức trừu tượng từ lớp User
+    public Seller(String id, String username) {
+        super(id, username, "SELLER");
+    }
+
     @Override
     public void displayProfile() {
         System.out.println("--- Seller Profile ---");
@@ -16,7 +19,6 @@ public class Seller extends User {
         System.out.println("Chức năng: Đăng sản phẩm, Quản lý kho hàng.");
     }
 
-    // Chức năng riêng của Seller
     public void createItem() {
         System.out.println("Đang thực hiện CRUD: Thêm sản phẩm mới...");
     }
