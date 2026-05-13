@@ -1,10 +1,19 @@
 package com.auction.controller;
 
+import com.auction.client.ClientConnection;
+import com.auction.entity.Item;
+import com.auction.entity.Message;
+import com.auction.entity.User;
+import com.auction.service.ItemFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class CreateItemController {
 
@@ -31,12 +40,26 @@ public class CreateItemController {
     @FXML
     private Label messageLabel;
 
+    private ClientConnection connection;
+    private User currentSeller;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public CreateItemController() {
+        objectMapper.registerModule(new JavaTimeModule());
+    }
+
+    public void setConnection(ClientConnection connection) {
+        this.connection = connection;
+    }
+
+    public void setCurrentSeller(User currentSeller) {
+        this.currentSeller = currentSeller;
+    }
+
     @FXML
     public void initialize() {
-        // Thêm các lựa chọn vào ComboBox
         categoryComboBox.getItems().addAll("Electronics", "Art");
 
-        // Thêm Listener để theo dõi sự thay đổi lựa chọn trong ComboBox
         categoryComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             if (newValue == null) {
                 electronicsPane.setVisible(false);
@@ -59,12 +82,15 @@ public class CreateItemController {
 
     @FXML
     private void handleCreateItem() {
-        // Lấy dữ liệu từ các trường
+        if (connection == null || currentSeller == null) {
+            messageLabel.setText("Error: Not connected or not logged in as seller.");
+            return;
+        }
+
         String name = nameField.getText();
         String description = descriptionArea.getText();
         String category = categoryComboBox.getValue();
         
-        // Kiểm tra dữ liệu đầu vào
         if (name.isEmpty() || description.isEmpty() || priceField.getText().isEmpty() ||
             startDatePicker.getValue() == null || endDatePicker.getValue() == null || category == null) {
             messageLabel.setText("Please fill in all required fields.");
@@ -74,40 +100,65 @@ public class CreateItemController {
         try {
             double price = Double.parseDouble(priceField.getText());
             LocalDateTime startTime = startDatePicker.getValue().atStartOfDay();
-            LocalDateTime endTime = endDatePicker.getValue().atTime(23, 59, 59); // Kết thúc vào cuối ngày
+            LocalDateTime endTime = endDatePicker.getValue().atTime(23, 59, 59);
 
             if(endTime.isBefore(startTime)) {
                 messageLabel.setText("End date must be after start date.");
                 return;
             }
 
-            // Logic gửi dữ liệu đến Server sẽ được thêm vào đây
-            System.out.println("--- Creating Item ---");
-            System.out.println("Name: " + name);
-            System.out.println("Category: " + category);
-            System.out.println("Price: " + price);
-            System.out.println("Start: " + startTime);
-            System.out.println("End: " + endTime);
+            // Tạo ID cho sản phẩm
+            String itemId = "ITM_" + UUID.randomUUID().toString().substring(0, 8);
+            Item newItem = null;
 
+            // Dùng ItemFactory để tạo đối tượng Item
             if (category.equals("Electronics")) {
                 int warranty = Integer.parseInt(warrantyField.getText());
-                System.out.println("Warranty: " + warranty + " months");
-            } else {
+                newItem = ItemFactory.createItem("electronics", itemId, name, description, price, startTime, endTime, warranty);
+            } else if (category.equals("Art")) {
                 String artist = artistField.getText();
-                System.out.println("Artist: " + artist);
+                if (artist.isEmpty()) {
+                     messageLabel.setText("Please enter artist name.");
+                     return;
+                }
+                newItem = ItemFactory.createItem("art", itemId, name, description, price, startTime, endTime, artist);
             }
             
-            messageLabel.setTextFill(javafx.scene.paint.Color.GREEN);
-            messageLabel.setText("Item creation request sent to server!");
+            // Tạm thời gắn sellerId (chưa có trường trong class Item, có thể dùng highestBidderId làm workaround hoặc cập nhật Item class)
+            // Trong thực tế, nên thêm thuộc tính sellerId vào class Item.
+            
+            if (newItem != null) {
+                // Đóng gói đối tượng Item thành JSON và gửi lên Server
+                String itemJson = objectMapper.writeValueAsString(newItem);
+                Message msg = new Message("CREATE_ITEM", itemJson);
+                connection.sendMessage(msg);
+
+                Message response = connection.receiveMessage();
+
+                if ("CREATE_ITEM_SUCCESS".equals(response.getType())) {
+                    Platform.runLater(() -> {
+                        messageLabel.setTextFill(javafx.scene.paint.Color.GREEN);
+                        messageLabel.setText("Item created successfully!");
+                        // Đóng cửa sổ sau khi thành công
+                        nameField.getScene().getWindow().hide();
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        messageLabel.setTextFill(javafx.scene.paint.Color.RED);
+                        messageLabel.setText("Failed to create item: " + response.getData());
+                    });
+                }
+            }
 
         } catch (NumberFormatException e) {
             messageLabel.setText("Price and Warranty must be valid numbers.");
+        } catch (Exception e) {
+             messageLabel.setText("Network error: " + e.getMessage());
         }
     }
 
     @FXML
     private void handleCancel() {
-        // Logic để đóng cửa sổ này
         nameField.getScene().getWindow().hide();
     }
 }

@@ -2,9 +2,14 @@ package com.auction.controller;
 
 import com.auction.client.ClientConnection;
 import com.auction.entity.Item;
+import com.auction.entity.Message;
 import com.auction.entity.User;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,7 +23,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class AuctionController {
 
@@ -47,10 +52,14 @@ public class AuctionController {
 
     private ClientConnection connection;
     private User currentUser;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public AuctionController() {
+        objectMapper.registerModule(new JavaTimeModule());
+    }
 
     @FXML
     public void initialize() {
-        // Cấu hình các cột của bảng
         nameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
         descriptionColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDescription()));
         priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.format("$%.2f", cellData.getValue().getCurrentHighestBid())));
@@ -69,7 +78,6 @@ public class AuctionController {
             return new SimpleStringProperty(formatted);
         });
 
-        // Listener để cập nhật ô "Selected Item" khi người dùng click vào một dòng
         itemTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
                 selectedItemText.setText(newSelection.getName());
@@ -85,7 +93,6 @@ public class AuctionController {
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
-        // Chỉ hiển thị nút "Create New Item" nếu người dùng là Seller
         if (user != null && "SELLER".equals(user.getRole())) {
             createNewItemButton.setVisible(true);
             createNewItemButton.setManaged(true);
@@ -102,31 +109,44 @@ public class AuctionController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/create-item.fxml"));
             Parent root = loader.load();
 
-            // Lấy controller của màn hình tạo item và truyền thông tin cần thiết
             CreateItemController controller = loader.getController();
-            // controller.setConnection(this.connection);
-            // controller.setCurrentSeller(this.currentUser);
+            controller.setConnection(this.connection);
+            controller.setCurrentSeller(this.currentUser);
 
             Stage stage = new Stage();
             stage.setTitle("Create New Auction Item");
             stage.setScene(new Scene(root));
-            
-            // Dùng Modality.APPLICATION_MODAL để cửa sổ mới hiện lên phải được xử lý xong
-            // thì mới quay lại được cửa sổ chính, tránh việc mở nhiều cửa sổ.
             stage.initModality(Modality.APPLICATION_MODAL);
+            
+            // Lắng nghe sự kiện đóng cửa sổ (bất kể bấm Cancel, X, hay Create thành công)
+            stage.setOnHidden(event -> fetchItemsFromServer());
+            
             stage.showAndWait();
-
-            // Sau khi cửa sổ tạo item đóng, làm mới lại danh sách
-            // fetchItemsFromServer();
 
         } catch (IOException e) {
             e.printStackTrace();
+            System.err.println("Lỗi: Không thể mở cửa sổ tạo sản phẩm.");
+        }
+    }
+    
+    private void fetchItemsFromServer() {
+         try {
+            Message req = new Message("GET_ITEMS", "");
+            connection.sendMessage(req);
+            
+            Message response = connection.receiveMessage();
+            if ("ITEM_LIST".equals(response.getType())) {
+                List<Item> items = objectMapper.readValue(response.getData(), new TypeReference<List<Item>>(){});
+                ObservableList<Item> observableItems = FXCollections.observableArrayList(items);
+                loadItems(observableItems);
+            }
+        } catch (Exception e) {
+             System.err.println("Could not fetch items: " + e.getMessage());
         }
     }
 
     @FXML
     private void handlePlaceBid() {
-        // Logic đặt giá sẽ được thêm ở đây
         bidMessageLabel.setText("Place Bid functionality is under construction.");
     }
 }

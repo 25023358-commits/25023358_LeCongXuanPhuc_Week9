@@ -1,6 +1,7 @@
 package com.auction.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.auction.service.AuctionManager;
 import com.auction.util.DBHelper;
 import com.auction.service.AuthService;
@@ -9,6 +10,7 @@ import com.auction.dao.BidTransactionDAO;
 import com.auction.entity.Message;
 import com.auction.entity.LoginRequest;
 import com.auction.entity.User;
+import com.auction.entity.Item;
 import com.auction.entity.BidRequest;
 import com.auction.entity.RegisterRequest;
 
@@ -23,7 +25,12 @@ public class AuctionServer {
     private ExecutorService executor = Executors.newCachedThreadPool();
     private AuctionManager auctionManager = new AuctionManager();
     private ObjectMapper objectMapper = new ObjectMapper();
-    private AuthService authService = new AuthService(); // Khởi tạo 1 lần, tái sử dụng
+    private AuthService authService = new AuthService(); 
+    private ItemDAO itemDAO = new ItemDAO();
+
+    public AuctionServer() {
+        objectMapper.registerModule(new JavaTimeModule());
+    }
 
     public void start() {
         DBHelper.initializeDatabase();
@@ -85,10 +92,12 @@ public class AuctionServer {
                 case "LIST_ITEMS":
                     handleListItems();
                     break;
+                case "CREATE_ITEM":
+                    handleCreateItem(msg);
+                    break;
                 case "BID":
                     handleBid(msg);
                     break;
-                // Add more cases
             }
         }
 
@@ -120,19 +129,28 @@ public class AuctionServer {
             }
         }
 
+        private void handleCreateItem(Message msg) throws IOException {
+             try {
+                Item newItem = objectMapper.readValue(msg.getData(), Item.class);
+                itemDAO.save(newItem);
+                // Bạn có thể cân nhắc thêm dòng này để đưa item vào memory manager nếu cần
+                // auctionManager.addItem(newItem);
+                
+                out.println(objectMapper.writeValueAsString(new Message("CREATE_ITEM_SUCCESS", "Item created.")));
+            } catch (Exception e) {
+                out.println(objectMapper.writeValueAsString(new Message("CREATE_ITEM_FAILED", e.getMessage())));
+            }
+        }
+
         private void handleListItems() throws IOException {
-            ItemDAO itemDAO = new ItemDAO();
             try {
-                System.out.println("Fetching items from database...");
-                var items = itemDAO.findAll();
-                System.out.println("Items fetched successfully: " + items.size()); // In số lượng items
+                var items = itemDAO.findAll(); 
                 out.println(objectMapper.writeValueAsString(new Message("ITEM_LIST", objectMapper.writeValueAsString(items))));
             } catch (Exception e) {
-                System.out.println("ERROR in handleListItems: " + e.getMessage());
-                e.printStackTrace(); // In full stack trace
                 out.println(objectMapper.writeValueAsString(new Message("ERROR", e.getMessage())));
             }
         }
+
         private void handleBid(Message msg) throws IOException {
             try {
                 BidRequest req = objectMapper.readValue(msg.getData(), BidRequest.class);
