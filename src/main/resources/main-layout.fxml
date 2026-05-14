@@ -14,7 +14,7 @@
             stylesheets="@welcome-style.css" 
             xmlns="http://javafx.com/javafx/17" 
             xmlns:fx="http://javafx.com/fxml/1" 
-            fx:controller="com.auction.controller.MainLayoutController">
+            fx:controller="com.auction.controller.navigation.MainLayoutController">
     
     <!-- SIDEBAR -->
     <left>

@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefWidth="450.0" prefHeight="400.0" spacing="10" style="-fx-padding: 20; -fx-background-color: white;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.ItemDetailController">
+<VBox prefWidth="450.0" prefHeight="400.0" spacing="10" style="-fx-padding: 20; -fx-background-color: white;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.auction.ItemDetailController">
     <Label fx:id="itemNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Item Name" />
     <Separator />
     <GridPane hgap="10" vgap="10">

@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="10" style="-fx-padding: 20;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.MyItemsController">
+<VBox spacing="10" style="-fx-padding: 20;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.auction.MyItemsController">
     <HBox alignment="CENTER_LEFT" spacing="15">
         <VBox>
             <Label style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0D3A26;" text="My Inventory" />

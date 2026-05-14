@@ -6,7 +6,7 @@
 <?import javafx.scene.chart.*?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.auction.controller.AuctionController"
+      fx:controller="com.auction.controller.auction.AuctionController"
       spacing="15" style="-fx-background-color: transparent; -fx-padding: 20;" stylesheets="@welcome-style.css">
     
     <!-- ===== HEADER ===== -->

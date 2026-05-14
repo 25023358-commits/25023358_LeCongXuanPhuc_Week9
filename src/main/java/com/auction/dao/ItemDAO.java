@@ -1,8 +1,8 @@
 package com.auction.dao;
 
-import com.auction.entity.Art;
-import com.auction.entity.Electronics;
-import com.auction.entity.Item;
+import com.auction.entity.items.Art;
+import com.auction.entity.items.Electronics;
+import com.auction.entity.items.Item;
 import com.auction.util.DBHelper;
 import java.sql.*;
 import java.time.LocalDateTime;

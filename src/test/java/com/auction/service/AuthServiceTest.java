@@ -1,11 +1,11 @@
 package com.auction.service;
 
+import com.auction.service.auth.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import com.auction.service.AuthService;
-import com.auction.entity.Bidder;
-import com.auction.entity.User;
+
+import com.auction.entity.user.User;
 public class AuthServiceTest {
     private AuthService authService;
 

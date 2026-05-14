@@ -1,11 +1,11 @@
 package com.auction.service;
 
+import com.auction.service.auction.AuctionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.auction.service.AuctionManager;
-import com.auction.entity.Bidder;
-import com.auction.entity.Electronics;
-import com.auction.entity.Item;
+import com.auction.entity.user.Bidder;
+import com.auction.entity.items.Electronics;
+import com.auction.entity.items.Item;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;

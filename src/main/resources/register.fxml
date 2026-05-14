@@ -7,7 +7,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.effect.DropShadow?>
 
-<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.RegisterController"
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.auth.RegisterController"
            prefHeight="600" prefWidth="900" stylesheets="@welcome-style.css" styleClass="left-pane">
 
     <Circle radius="200" styleClass="abstract-circle-1" StackPane.alignment="TOP_LEFT" translateX="-50" translateY="-50"/>

@@ -7,7 +7,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.effect.DropShadow?>
 
-<HBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.WelcomeController"
+<HBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.navigation.WelcomeController"
       prefHeight="600" prefWidth="900" stylesheets="@welcome-style.css">
 
     <!-- PHẦN BÊN TRÁI (60% diện tích) - Gradient & Hình khối -->

@@ -1,15 +1,25 @@
 package com.auction.server;
 
+import com.auction.entity.bid.BidTransaction;
+import com.auction.entity.dto.auth.LoginRequest;
+import com.auction.entity.dto.auth.RegisterRequest;
+import com.auction.entity.dto.bid.AutoBidRequest;
+import com.auction.entity.dto.bid.BidRequest;
+import com.auction.entity.items.Item;
+import com.auction.entity.message.Message;
+import com.auction.entity.user.Bidder;
+import com.auction.entity.user.User;
+import com.auction.service.scheduler.AuctionScheduler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.auction.service.AuctionManager;
-import com.auction.service.AutoBidder;
+import com.auction.service.auction.AuctionManager;
+import com.auction.service.bidding.AutoBidder;
 import com.auction.util.DBHelper;
 import com.auction.dao.BidTransactionDAO;
 import com.auction.dao.ItemDAO;
 import com.auction.dao.UserDAO;
-import com.auction.service.AuthService;
-import com.auction.entity.*;
+import com.auction.service.auth.AuthService;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,14 +40,14 @@ public class AuctionServer {
     private final ItemDAO itemDAO = new ItemDAO();
     private final UserDAO userDAO = new UserDAO();
     private final AutoBidder autoBidder;
-    private final com.auction.service.AuctionScheduler auctionScheduler;
+    private final AuctionScheduler auctionScheduler;
 
     public AuctionServer() {
         objectMapper.registerModule(new JavaTimeModule());
         // Khởi tạo AutoBidder và gán vào AuctionManager
         autoBidder = new AutoBidder(auctionManager);
         auctionManager.setAutoBidder(autoBidder);
-        auctionScheduler = new com.auction.service.AuctionScheduler(auctionManager);
+        auctionScheduler = new AuctionScheduler(auctionManager);
     }
 
     public void start() {

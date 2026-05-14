@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.net.Socket;
 
-import com.auction.entity.Message;
+import com.auction.entity.message.Message;
 
 public class ClientConnection {
     private Socket socket;

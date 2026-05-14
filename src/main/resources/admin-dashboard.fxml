@@ -4,7 +4,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.geometry.Insets?>
 
-<VBox spacing="20" style="-fx-padding: 25; -fx-background-color: #F4F7F6;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.AdminDashboardController" stylesheets="@welcome-style.css">
+<VBox spacing="20" style="-fx-padding: 25; -fx-background-color: #F4F7F6;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.admin.AdminDashboardController" stylesheets="@welcome-style.css">
     
     <!-- HEADER -->
     <HBox alignment="CENTER_LEFT" spacing="20">
