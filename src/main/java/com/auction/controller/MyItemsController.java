@@ -7,7 +7,6 @@ import com.auction.entity.User;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -25,15 +24,10 @@ public class MyItemsController {
 
     @FXML private TableView<Item> itemTable;
     @FXML private TableColumn<Item, String> nameColumn;
+    @FXML private TableColumn<Item, String> descColumn;
     @FXML private TableColumn<Item, String> priceColumn;
-    @FXML private TableColumn<Item, String> winnerColumn;
-    @FXML private TableColumn<Item, String> statusColumn;
+    @FXML private TableColumn<Item, String> endTimeColumn;
     @FXML private TableColumn<Item, Void> actionColumn;
-
-    @FXML private Label totalRevenueLabel;
-    @FXML private Label activeAuctionsLabel;
-    @FXML private Label totalBidsLabel;
-    @FXML private ListView<String> salesLogList;
 
     private ClientConnection connection;
     private User currentUser;
@@ -41,40 +35,42 @@ public class MyItemsController {
     @FXML
     public void initialize() {
         nameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
-        priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.format("$%.2f", cellData.getValue().getCurrentHighestBid())));
-        winnerColumn.setCellValueFactory(cellData -> new SimpleStringProperty(
-                cellData.getValue().getHighestBidderId() != null ? cellData.getValue().getHighestBidderId() : "No bids"
-        ));
-        statusColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getStatus().toString()));
+        descColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDescription()));
+        priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.format("$%.2f", cellData.getValue().getStartingPrice())));
+        endTimeColumn.setCellValueFactory(cellData -> {
+            if (cellData.getValue().getEndTime() != null) {
+                return new SimpleStringProperty(cellData.getValue().getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            }
+            return new SimpleStringProperty("N/A");
+        });
 
         // Setup Action Column
         actionColumn.setCellFactory(param -> new TableCell<>() {
-            private final Button editBtn = new Button("Edit");
-            private final Button deleteBtn = new Button("Delete");
-            private final HBox pane = new HBox(8, editBtn, deleteBtn);
+            private final Button editBtn = new Button("✏ Edit");
+            private final Button deleteBtn = new Button("🗑 Delete");
+            private final HBox pane = new HBox(5, editBtn, deleteBtn);
 
             {
-                editBtn.setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-size: 11px; -fx-cursor: hand;");
-                deleteBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 11px; -fx-cursor: hand;");
+                editBtn.setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-cursor: hand;");
+                deleteBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-cursor: hand;");
 
-                editBtn.setOnAction(event -> handleEditItem(getTableView().getItems().get(getIndex())));
-                deleteBtn.setOnAction(event -> handleDeleteItem(getTableView().getItems().get(getIndex())));
+                editBtn.setOnAction(event -> {
+                    Item item = getTableView().getItems().get(getIndex());
+                    handleEditItem(item);
+                });
+
+                deleteBtn.setOnAction(event -> {
+                    Item item = getTableView().getItems().get(getIndex());
+                    handleDeleteItem(item);
+                });
             }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) setGraphic(null);
-                else {
-                    Item i = getTableView().getItems().get(getIndex());
-                    // Don't allow delete if already has bids
-                    deleteBtn.setDisable(i.getCurrentHighestBid() > i.getStartingPrice());
-                    setGraphic(pane);
-                }
+                setGraphic(empty ? null : pane);
             }
         });
-        
-        addSalesLog("SYSTEM: Dashboard ready. Tracking your items...");
     }
 
     public void setConnectionAndUser(ClientConnection connection, User user) {
@@ -86,33 +82,14 @@ public class MyItemsController {
         if (connection != null && currentUser != null) {
             try {
                 connection.sendMessage(new Message("GET_SELLER_ITEMS", currentUser.getId()));
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     public void loadItems(List<Item> items) {
-        Platform.runLater(() -> {
-            itemTable.setItems(FXCollections.observableArrayList(items));
-            
-            // Calculate Stats
-            double revenue = items.stream()
-                .filter(i -> i.getStatus() == Item.Status.FINISHED || i.getStatus() == Item.Status.PAID || i.getStatus() == Item.Status.RUNNING)
-                .mapToDouble(Item::getCurrentHighestBid)
-                .sum();
-            long active = items.stream().filter(i -> i.getStatus() == Item.Status.RUNNING || i.getStatus() == Item.Status.OPEN).count();
-            
-            totalRevenueLabel.setText(String.format("$%.2f", revenue));
-            activeAuctionsLabel.setText(String.valueOf(active));
-            totalBidsLabel.setText(String.valueOf(items.size())); // Simplified for now
-        });
-    }
-
-    public void addSalesLog(String message) {
-        Platform.runLater(() -> {
-            String time = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
-            salesLogList.getItems().add(0, "[" + time + "] " + message);
-            if (salesLogList.getItems().size() > 50) salesLogList.getItems().remove(50);
-        });
+        Platform.runLater(() -> itemTable.setItems(FXCollections.observableArrayList(items)));
     }
 
     @FXML
@@ -125,12 +102,18 @@ public class MyItemsController {
     }
 
     private void handleDeleteItem(Item item) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Delete '" + item.getName() + "'?", ButtonType.YES, ButtonType.NO);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Item");
+        alert.setHeaderText("Are you sure you want to delete '" + item.getName() + "'?");
+        alert.setContentText("This action cannot be undone.");
+
         alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.YES) {
+            if (response == ButtonType.OK) {
                 try {
                     connection.sendMessage(new Message("DELETE_ITEM", item.getId()));
-                } catch (Exception e) { e.printStackTrace(); }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -142,7 +125,9 @@ public class MyItemsController {
             CreateItemController controller = loader.getController();
             controller.setConnection(this.connection);
             controller.setCurrentSeller(this.currentUser);
-            if (item != null) controller.setEditingItem(item);
+            if (item != null) {
+                controller.setEditingItem(item);
+            }
 
             Stage stage = new Stage();
             stage.setTitle(item == null ? "Create New Item" : "Edit Item");
@@ -150,6 +135,8 @@ public class MyItemsController {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setOnHidden(event -> fetchMyItems());
             stage.showAndWait();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

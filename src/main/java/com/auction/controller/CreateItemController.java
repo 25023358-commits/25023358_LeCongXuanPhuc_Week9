@@ -53,10 +53,9 @@ public class CreateItemController {
     private ClientConnection connection;
     private User currentSeller;
     private Item editingItem;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
 
     public CreateItemController() {
-        objectMapper.registerModule(new JavaTimeModule());
     }
 
     public void setConnection(ClientConnection connection) {

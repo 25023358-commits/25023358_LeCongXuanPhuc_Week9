@@ -217,10 +217,7 @@ public class AuctionController {
                                 bidderName, amount, itemName);
                         addNotification(log);
                         if (adminDashboardController != null) adminDashboardController.addSystemLog(log);
-                        if (mainLayoutController != null && mainLayoutController.getMyItemsController() != null) {
-                            mainLayoutController.getMyItemsController().addSalesLog(log);
-                        }
-
+                        
                         // Cập nhật biểu đồ nếu item đang được chọn
                         Item selected = itemTable.getSelectionModel().getSelectedItem();
                         if (selected != null && node.has("itemId")
@@ -255,9 +252,6 @@ public class AuctionController {
                         String log = String.format("🛡️ [Anti-Sniping] Auction for \"%s\" extended! New time: %ds", itemId, rem);
                         addNotification(log);
                         if (adminDashboardController != null) adminDashboardController.addSystemLog(log);
-                        if (mainLayoutController != null && mainLayoutController.getMyItemsController() != null) {
-                            mainLayoutController.getMyItemsController().addSalesLog(log);
-                        }
                         break;
                     }
 

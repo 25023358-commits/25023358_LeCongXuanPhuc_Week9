@@ -9,61 +9,22 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="20" style="-fx-padding: 25; -fx-background-color: #F4F7F6;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.MyItemsController" stylesheets="@welcome-style.css">
-    
-    <!-- HEADER -->
-    <HBox alignment="CENTER_LEFT" spacing="20">
+<VBox spacing="10" style="-fx-padding: 20;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.controller.MyItemsController">
+    <HBox alignment="CENTER_LEFT" spacing="15">
         <VBox>
-            <Label text="Seller Dashboard" style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #0D3A26;" />
-            <Label text="Manage your inventory and track sales performance" style="-fx-text-fill: #7f8c8d; -fx-font-size: 13;" />
+            <Label style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0D3A26;" text="My Inventory" />
+            <Label style="-fx-text-fill: #7f8c8d; -fx-font-size: 11px;" text="Manage and track your auction items" />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
-        <Button text="＋ Create New Item" onAction="#handleCreateItem" styleClass="btn-filled" style="-fx-background-color: #27ae60; -fx-padding: 10 20;" />
+        <Button onAction="#handleCreateItem" styleClass="btn-filled" style="-fx-background-color: #27ae60; -fx-padding: 8 20;" text="＋ Create New Item" />
     </HBox>
-
-    <!-- SALES STATS -->
-    <HBox spacing="15">
-        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 2);">
-            <Label text="POTENTIAL REVENUE" style="-fx-text-fill: #95a5a6; -fx-font-size: 11; -fx-font-weight: bold;" />
-            <Label fx:id="totalRevenueLabel" text="$0.00" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #27ae60;" />
-        </VBox>
-        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 2);">
-            <Label text="ACTIVE AUCTIONS" style="-fx-text-fill: #95a5a6; -fx-font-size: 11; -fx-font-weight: bold;" />
-            <Label fx:id="activeAuctionsLabel" text="0" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #2980b9;" />
-        </VBox>
-        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 2);">
-            <Label text="TOTAL BIDS RECEIVED" style="-fx-text-fill: #95a5a6; -fx-font-size: 11; -fx-font-weight: bold;" />
-            <Label fx:id="totalBidsLabel" text="0" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #8e44ad;" />
-        </VBox>
-    </HBox>
-
-    <HBox spacing="20" VBox.vgrow="ALWAYS">
-        <!-- LEFT: ITEMS LIST -->
-        <VBox spacing="15" HBox.hgrow="ALWAYS" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 5);">
-            <Label text="📦 My Inventory" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
-            <TableView fx:id="itemTable" VBox.vgrow="ALWAYS" style="-fx-font-size: 12;">
-                <columns>
-                    <TableColumn fx:id="nameColumn"    text="Item Name"     prefWidth="150" />
-                    <TableColumn fx:id="priceColumn"   text="Highest Bid"   prefWidth="110" />
-                    <TableColumn fx:id="winnerColumn"  text="Top Bidder"    prefWidth="110" />
-                    <TableColumn fx:id="statusColumn"  text="Status"        prefWidth="90" />
-                    <TableColumn fx:id="actionColumn"  text="Quick Actions" prefWidth="120" />
-                </columns>
-                <placeholder>
-                    <Label text="No items yet. Start selling!" />
-                </placeholder>
-            </TableView>
-        </VBox>
-
-        <!-- RIGHT: ACTIVITY LOG -->
-        <VBox spacing="15" prefWidth="300">
-            <VBox spacing="10" VBox.vgrow="ALWAYS" style="-fx-background-color: #1E6646; -fx-padding: 15; -fx-background-radius: 15;">
-                <Label text="🔔 Sales Notifications" style="-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 14;" />
-                <ListView fx:id="salesLogList" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-control-inner-background: #1E6646; -fx-border-color: transparent;" stylesheets="@admin-log-style.css" />
-                <placeholder>
-                    <Label text="Waiting for bids..." style="-fx-text-fill: #ccc; -fx-font-size: 11;"/>
-                </placeholder>
-            </VBox>
-        </VBox>
-    </HBox>
+    <TableView fx:id="itemTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="nameColumn" prefWidth="150" text="Name" />
+            <TableColumn fx:id="descColumn" prefWidth="250" text="Description" />
+            <TableColumn fx:id="priceColumn" prefWidth="100" text="Starting Price" />
+            <TableColumn fx:id="endTimeColumn" prefWidth="150" text="End Time" />
+            <TableColumn fx:id="actionColumn" prefWidth="150" text="Action" />
+        </columns>
+    </TableView>
 </VBox>
