@@ -53,15 +53,15 @@ public class ItemDAO {
             if (item instanceof Electronics) {
                 stmt.setInt(9, ((Electronics) item).getWarrantyMonths());
                 stmt.setNull(10, Types.VARCHAR);
-                if (!exists) {
-                    stmt.setString(12, "ELECTRONICS");
-                }
+                if (!exists) stmt.setString(12, "ELECTRONICS");
             } else if (item instanceof Art) {
                 stmt.setNull(9, Types.INTEGER);
                 stmt.setString(10, ((Art) item).getArtistName());
-                if (!exists) {
-                    stmt.setString(12, "ART");
-                }
+                if (!exists) stmt.setString(12, "ART");
+            } else {
+                stmt.setNull(9, Types.INTEGER);
+                stmt.setNull(10, Types.VARCHAR);
+                if (!exists) stmt.setString(12, "GENERAL");
             }
 
             if (exists) {

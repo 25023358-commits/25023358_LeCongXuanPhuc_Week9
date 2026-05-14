@@ -108,7 +108,7 @@ public class MyItemsController {
         alert.setContentText("This action cannot be undone.");
 
         alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
+            if (response == ButtonType.OK || response == ButtonType.YES) {
                 try {
                     connection.sendMessage(new Message("DELETE_ITEM", item.getId()));
                 } catch (Exception e) {

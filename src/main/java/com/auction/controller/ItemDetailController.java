@@ -66,48 +66,48 @@ public class ItemDetailController {
             double highestBid = root.has("highestBidAmount") ? root.get("highestBidAmount").asDouble() : 0.0;
             String winnerName = root.has("winnerName") ? root.get("winnerName").asText() : "N/A";
 
-            // Cập nhật UI
-            itemNameLabel.setText(item.getName());
-            sellerLabel.setText(sellerName);
-            descriptionLabel.setText(item.getDescription());
-            startingPriceLabel.setText(String.format("$%.2f", item.getStartingPrice()));
-            currentBidLabel.setText(String.format("$%.2f", item.getCurrentHighestBid()));
-            bidCountLabel.setText(String.valueOf(bidCount));
-            currentLeaderLabel.setText(winnerName);
-            statusLabel.setText(item.getStatus() != null ? item.getStatus().name() : "N/A");
+            // Cập nhật UI an toàn (null-check)
+            if (itemNameLabel != null) itemNameLabel.setText(item.getName());
+            if (sellerLabel != null) sellerLabel.setText(sellerName);
+            if (descriptionLabel != null) descriptionLabel.setText(item.getDescription());
+            if (startingPriceLabel != null) startingPriceLabel.setText(String.format("$%.2f", item.getStartingPrice()));
+            if (currentBidLabel != null) currentBidLabel.setText(String.format("$%.2f", item.getCurrentHighestBid()));
+            if (bidCountLabel != null) bidCountLabel.setText(bidCount + " bids");
+            if (currentLeaderLabel != null) currentLeaderLabel.setText(winnerName);
+            if (statusLabel != null) statusLabel.setText(item.getStatus() != null ? item.getStatus().name() : "N/A");
 
             // Thời gian
-            startTimeLabel.setText(item.getStartTime() != null
-                    ? item.getStartTime().format(DT_FMT) : "N/A");
-            endTimeLabel.setText(item.getEndTime() != null
-                    ? item.getEndTime().format(DT_FMT) : "N/A");
+            if (startTimeLabel != null) startTimeLabel.setText(item.getStartTime() != null ? item.getStartTime().format(DT_FMT) : "N/A");
+            if (endTimeLabel != null) endTimeLabel.setText(item.getEndTime() != null ? item.getEndTime().format(DT_FMT) : "N/A");
 
             // Loại & thông tin thêm
             String type = item.getType();
             if ("ELECTRONICS".equals(type)) {
-                categoryLabel.setText("Electronics");
-                if (root.get("item").has("warrantyMonths")) {
+                if (categoryLabel != null) categoryLabel.setText("Electronics");
+                if (extraInfoLabel != null && root.get("item").has("warrantyMonths")) {
                     extraInfoLabel.setText("Warranty: " + root.get("item").get("warrantyMonths").asInt() + " months");
                 }
             } else if ("ART".equals(type)) {
-                categoryLabel.setText("Art");
-                if (root.get("item").has("artistName")) {
+                if (categoryLabel != null) categoryLabel.setText("Art");
+                if (extraInfoLabel != null && root.get("item").has("artistName")) {
                     extraInfoLabel.setText("Artist: " + root.get("item").get("artistName").asText());
                 }
             } else {
-                categoryLabel.setText(type != null ? type : "General");
-                extraInfoLabel.setText("");
+                if (categoryLabel != null) categoryLabel.setText("General");
+                if (extraInfoLabel != null) extraInfoLabel.setText("");
             }
 
             // Hiện nút Pay Now nếu đang FINISHED và user hiện tại là winner
-            if (item.getStatus() == Item.Status.FINISHED 
-                && currentUser != null 
-                && currentUser.getId().equals(item.getHighestBidderId())) {
-                btnPayNow.setVisible(true);
-                btnPayNow.setManaged(true);
-            } else {
-                btnPayNow.setVisible(false);
-                btnPayNow.setManaged(false);
+            if (btnPayNow != null) {
+                if (item.getStatus() == Item.Status.FINISHED 
+                    && currentUser != null 
+                    && currentUser.getId().equals(item.getHighestBidderId())) {
+                    btnPayNow.setVisible(true);
+                    btnPayNow.setManaged(true);
+                } else {
+                    btnPayNow.setVisible(false);
+                    btnPayNow.setManaged(false);
+                }
             }
 
         } catch (Exception e) {

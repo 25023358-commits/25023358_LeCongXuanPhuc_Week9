@@ -94,6 +94,8 @@ public class AuctionController {
             return new SimpleStringProperty(item.getStatus() != null ? item.getStatus().name() : "N/A");
         });
 
+        // Kích hoạt cập nhật cho cột My Status
+        myStatusColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getId()));
         myStatusColumn.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -108,7 +110,7 @@ public class AuctionController {
                         setStyle("-fx-text-fill: #95a5a6;");
                     } else if (currentUser.getId().equals(auctionItem.getHighestBidderId())) {
                         setText("👑 Winning");
-                        setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+                        setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold;");
                     } else {
                         setText("Outbid");
                         setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
@@ -207,8 +209,21 @@ public class AuctionController {
                 switch (msg.getType()) {
 
                     case "BID_UPDATE": {
-                        fetchItemsFromServer();
                         JsonNode node = objectMapper.readTree(msg.getData());
+                        String itemId = node.get("itemId").asText();
+                        double newAmount = node.get("amount").asDouble();
+                        String newBidderId = node.get("bidderId").asText();
+
+                        // Cập nhật trực tiếp vào list thay vì fetch lại toàn bộ (tránh mất selection)
+                        for (Item it : itemTable.getItems()) {
+                            if (it.getId().equals(itemId)) {
+                                it.setCurrentHighestBid(newAmount);
+                                it.setHighestBidderId(newBidderId);
+                                break;
+                            }
+                        }
+                        itemTable.refresh();
+                        
                         String itemName = node.has("itemName") ? node.get("itemName").asText() : "Unknown item";
                         String bidderName = node.has("bidderName") ? node.get("bidderName").asText() : "Unknown";
                         double amount = node.has("amount") ? node.get("amount").asDouble() : 0;
@@ -256,9 +271,24 @@ public class AuctionController {
                     }
 
                     case "ITEM_STATUS_CHANGED": {
-                        fetchItemsFromServer();
                         try {
                             Item changedItem = objectMapper.readValue(msg.getData(), Item.class);
+                            
+                            // Cập nhật trực tiếp vào bảng để giữ nguyên lựa chọn
+                            for (int i = 0; i < itemTable.getItems().size(); i++) {
+                                if (itemTable.getItems().get(i).getId().equals(changedItem.getId())) {
+                                    itemTable.getItems().set(i, changedItem);
+                                    break;
+                                }
+                            }
+                            itemTable.refresh();
+                            
+                            // Cập nhật nhãn nếu item đang được chọn
+                            Item selected = itemTable.getSelectionModel().getSelectedItem();
+                            if (selected != null && selected.getId().equals(changedItem.getId())) {
+                                selectedItemText.setText(selected.getName() + " [" + selected.getStatus() + "]");
+                            }
+
                             String winner = changedItem.getHighestBidderId();
                             String notif;
                             if (changedItem.getStatus() == Item.Status.FINISHED) {
@@ -311,6 +341,17 @@ public class AuctionController {
                         addNotification("[DASHBOARD] Showing your " + sellerItems.size() + " item(s).");
                         break;
                     }
+
+                    case "DELETE_SUCCESS":
+                        Platform.runLater(() -> {
+                            addNotification("[SYSTEM] Item deleted successfully.");
+                            if (mainLayoutController != null && mainLayoutController.getMyItemsController() != null) {
+                                mainLayoutController.getMyItemsController().fetchMyItems();
+                            }
+                            // Refresh main list too
+                            try { connection.sendMessage(new Message("GET_ITEMS", "")); } catch (Exception e) {}
+                        });
+                        break;
 
                     case "ALL_USERS":
                         if (adminDashboardController != null) {
@@ -584,7 +625,11 @@ public class AuctionController {
     @FXML
     private void handleViewDetails() {
         Item selectedItem = itemTable.getSelectionModel().getSelectedItem();
-        if (selectedItem == null) return;
+        if (selectedItem == null) {
+            bidMessageLabel.setTextFill(javafx.scene.paint.Color.RED);
+            bidMessageLabel.setText("Please select an item to view details.");
+            return;
+        }
         try {
             connection.sendMessage(new Message("GET_ITEM_DETAILS", selectedItem.getId()));
         } catch (Exception e) {
@@ -593,27 +638,29 @@ public class AuctionController {
     }
 
     private void openItemDetailsWindow(String detailsJson) {
-        try {
-            java.net.URL fxmlUrl = getClass().getResource("/item-detail.fxml");
-            if (fxmlUrl == null) {
-                addNotification("[ERROR] item-detail.fxml not found.");
-                return;
-            }
-            FXMLLoader loader = new FXMLLoader(fxmlUrl);
-            Parent root = loader.load();
-            ItemDetailController controller = loader.getController();
-            controller.setConnectionAndUser(this.connection, this.currentUser);
-            controller.loadDetails(detailsJson);
+        Platform.runLater(() -> {
+            try {
+                java.net.URL fxmlUrl = getClass().getResource("/item-detail.fxml");
+                if (fxmlUrl == null) {
+                    addNotification("[ERROR] item-detail.fxml not found.");
+                    return;
+                }
+                FXMLLoader loader = new FXMLLoader(fxmlUrl);
+                Parent root = loader.load();
+                ItemDetailController controller = loader.getController();
+                controller.setConnectionAndUser(this.connection, this.currentUser);
+                controller.loadDetails(detailsJson);
 
-            Stage stage = new Stage();
-            stage.setTitle("Item Details");
-            stage.setScene(new Scene(root, 480, 420));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            addNotification("[ERROR] Cannot open details: " + e.getMessage());
-        }
+                Stage stage = new Stage();
+                stage.setTitle("Item Details");
+                stage.setScene(new Scene(root, 480, 420));
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.show();
+            } catch (Exception e) {
+                e.printStackTrace();
+                addNotification("[ERROR] Cannot open details: " + e.getMessage());
+            }
+        });
     }
 
     @FXML
